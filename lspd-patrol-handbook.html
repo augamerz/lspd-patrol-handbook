@@ -1,0 +1,2932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Patrol Toolkit — LSPD &amp; SAHP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0c1017;
+      --bg-elevated: #111822;
+      --panel: #151c28;
+      --panel-2: #1c2534;
+      --line: #2a3548;
+      --line-strong: #3a4a63;
+      --text: #e6ebf2;
+      --muted: #8b97ab;
+      --accent: #3d7dd6;
+      --accent-bright: #5a97eb;
+      --accent-soft: rgba(61, 125, 214, 0.16);
+      --focus: rgba(61, 125, 214, 0.35);
+      --accent-hover: #5a97eb;
+      --danger: #d65a5a;
+      --input: #0f1520;
+      --mark: #d4a017;
+      --mark-text: #0c1017;
+      --success: #2f6b4a;
+      --font: "IBM Plex Sans", system-ui, sans-serif;
+      --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+      --mono: "IBM Plex Mono", "Consolas", monospace;
+      --sidebar: 292px;
+      --radius: 8px;
+      --ease: 180ms ease;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.55;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse 90% 55% at 10% -10%, rgba(61, 125, 214, 0.14), transparent 55%),
+        radial-gradient(ellipse 70% 40% at 100% 0%, rgba(20, 40, 70, 0.5), transparent 50%),
+        linear-gradient(rgba(42, 53, 72, 0.18) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(42, 53, 72, 0.18) 1px, transparent 1px);
+      background-size: auto, auto, 28px 28px, 28px 28px;
+      background-attachment: fixed;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: var(--sidebar) 1fr;
+      min-height: 100vh;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+      }
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      background: linear-gradient(180deg, #121a26 0%, var(--panel) 40%);
+      border-right: 1px solid var(--line);
+      padding: 22px 16px 32px;
+    }
+
+    .brand {
+      margin-bottom: 20px;
+      padding: 14px 12px 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(61, 125, 214, 0.12), transparent 55%),
+        var(--panel-2);
+    }
+
+    .brand-mark {
+      display: inline-block;
+      font-family: var(--display);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent-bright);
+      margin-bottom: 6px;
+    }
+
+    .brand h1 {
+      margin: 0 0 4px;
+      font-family: var(--display);
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      line-height: 1.05;
+      color: var(--text);
+    }
+
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 0.02em;
+    }
+
+    .search-wrap { margin-bottom: 16px; }
+
+    .search-wrap input {
+      width: 100%;
+      background: var(--input);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--text);
+      padding: 10px 12px;
+      font: inherit;
+      outline: none;
+      transition: border-color var(--ease), box-shadow var(--ease);
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .search-meta {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      min-height: 1.2em;
+    }
+
+    .nav-title {
+      font-family: var(--display);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 8px;
+    }
+
+    .nav-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .nav-list a {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 6px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.88rem;
+      line-height: 1.35;
+      border-left: 2px solid transparent;
+      transition: background var(--ease), color var(--ease), border-color var(--ease);
+    }
+
+    .nav-list a:hover {
+      background: var(--panel-2);
+      color: #dce7f7;
+    }
+
+    .nav-list a.active {
+      background: var(--accent-soft);
+      border-left-color: var(--accent);
+      color: #cfe6ff;
+    }
+
+    .nav-list a.hidden { display: none; }
+
+    .main {
+      width: 100%;
+      min-width: 0;
+      max-width: none;
+      padding: 28px 32px 64px;
+    }
+
+    #viewLspd,
+    #viewHighway {
+      width: 100%;
+      max-width: none;
+    }
+
+    body.theme-highway {
+      --accent: #c9a227;
+      --accent-bright: #e0bc45;
+      --accent-soft: rgba(201, 162, 39, 0.16);
+      --focus: rgba(201, 162, 39, 0.35);
+      --accent-hover: #d4b03a;
+    }
+
+    body.theme-highway {
+      background-image:
+        radial-gradient(ellipse 90% 55% at 10% -10%, rgba(201, 162, 39, 0.12), transparent 55%),
+        radial-gradient(ellipse 70% 40% at 100% 0%, rgba(50, 40, 20, 0.45), transparent 50%),
+        linear-gradient(rgba(42, 53, 72, 0.18) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(42, 53, 72, 0.18) 1px, transparent 1px);
+    }
+
+    .handbook-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .handbook-grid section {
+      margin-bottom: 0;
+      min-width: 0;
+      overflow-x: auto;
+    }
+
+    @media (max-width: 1100px) {
+      .handbook-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(61, 125, 214, 0.18), transparent 45%),
+        linear-gradient(160deg, #1a2435, #121926);
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      padding: 28px 26px;
+      margin-bottom: 24px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -20% -40% 40%;
+      height: 120%;
+      background: radial-gradient(circle, rgba(61, 125, 214, 0.12), transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero h2 {
+      position: relative;
+      margin: 0 0 8px;
+      font-family: var(--display);
+      font-size: 2.35rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      line-height: 1.05;
+    }
+
+    .hero .meta {
+      position: relative;
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 12px;
+      font-family: var(--mono);
+    }
+
+    .hero p:last-child {
+      position: relative;
+      margin-bottom: 0;
+      max-width: 42rem;
+    }
+
+    section {
+      scroll-margin-top: 20px;
+      background: rgba(21, 28, 40, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 22px 24px;
+      margin-bottom: 16px;
+      backdrop-filter: blur(6px);
+    }
+
+    section.hidden,
+    .hero.hidden { display: none; }
+
+    section h3 {
+      margin: 0 0 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--line);
+      font-family: var(--display);
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #dce7f7;
+    }
+
+    section p { margin: 0 0 12px; }
+    section p:last-child { margin-bottom: 0; }
+
+    .callout {
+      background: var(--panel-2);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 6px 6px 0;
+      padding: 12px 14px;
+      margin: 14px 0;
+    }
+
+    .callout.danger { border-left-color: var(--danger); }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 4px;
+      font-family: var(--display);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    blockquote {
+      margin: 14px 0;
+      padding: 14px 16px;
+      background: var(--panel-2);
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      font-style: italic;
+    }
+
+    ul, ol { margin: 0 0 12px; padding-left: 1.25rem; }
+    li { margin-bottom: 6px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 9px 11px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #182233;
+      color: #cfe6ff;
+      font-weight: 600;
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    tbody tr:nth-child(even) td {
+      background: rgba(28, 37, 52, 0.45);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 640px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .main { padding: 20px 16px 48px; }
+    }
+
+    .code-card {
+      background: transparent;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 10px 12px;
+      border-left: 2px solid var(--accent);
+    }
+
+    .code-card strong {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--accent-bright);
+      margin-bottom: 2px;
+      letter-spacing: 0.02em;
+    }
+
+    mark {
+      background: var(--mark);
+      color: var(--mark-text);
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+
+    .no-results {
+      display: none;
+      text-align: center;
+      color: var(--muted);
+      padding: 40px 20px;
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      margin-top: 12px;
+    }
+
+    .no-results.show { display: block; }
+
+    /* App tabs */
+    .app-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 5px;
+      margin-bottom: 16px;
+    }
+
+    .app-tab {
+      font: inherit;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 8px 6px;
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 0.82rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: background var(--ease), color var(--ease), border-color var(--ease);
+    }
+
+    .app-tab:hover { color: var(--text); background: var(--panel-2); }
+
+    .app-tab.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: #cfe6ff;
+    }
+
+    .sidebar-panel { display: none; }
+    .sidebar-panel.active {
+      display: block;
+      animation: panelIn 220ms ease;
+    }
+
+    @keyframes panelIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .app-view { display: none; }
+    .app-view.active { display: block; }
+
+    #viewReport.active {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      animation: panelIn 220ms ease;
+    }
+
+    #viewLspd.active,
+    #viewHighway.active {
+      animation: panelIn 220ms ease;
+    }
+
+    #viewReport {
+      max-width: none;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .main:has(#viewReport.active) {
+      max-width: none;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      padding: 16px 20px 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body:has(#viewReport.active) { overflow: hidden; }
+
+    .layout:has(#viewReport.active) {
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #viewReport h1,
+    #viewReport .page-title {
+      margin: 0 0 8px;
+      font-family: var(--display);
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-align: center;
+      text-transform: uppercase;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+
+    #pageReport.active {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .report-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+      align-items: stretch;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .report-col {
+      min-width: 0;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .report-col-main {
+      display: flex;
+      flex-direction: column;
+      padding-right: 4px;
+    }
+
+    .report-col-main .field { margin-bottom: 10px; }
+
+    .report-col-main .report-editor-field {
+      flex: 1;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 10px;
+    }
+
+    .report-col-main .report-editor-field .editor-shell {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .report-col-main .report-editor-field .ql-container.ql-snow {
+      flex: 1;
+      min-height: 100px;
+    }
+
+    .report-col-main .footer-fields,
+    .report-col-main .signed {
+      flex-shrink: 0;
+    }
+
+    .report-col-suspects {
+      display: flex;
+      flex-direction: column;
+      background: rgba(21, 28, 40, 0.95);
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      padding: 14px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .report-col-suspects .suspects-header {
+      flex-shrink: 0;
+      margin-bottom: 8px;
+    }
+
+    .report-col-suspects .suspect-tabs { flex-shrink: 0; }
+
+    .report-col-suspects .suspects-list {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+    }
+
+    .suspect-tabs {
+      display: none;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .suspect-tabs.visible { display: flex; }
+
+    .suspect-tab {
+      font: inherit;
+      cursor: pointer;
+      border: none;
+      border-bottom: 2px solid transparent;
+      border-radius: 0;
+      padding: 7px 10px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: color var(--ease), border-color var(--ease);
+    }
+
+    .suspect-tab:hover { color: var(--text); }
+
+    .suspect-tab.active {
+      color: #cfe6ff;
+      border-bottom-color: var(--accent);
+    }
+
+    .suspect-block {
+      display: none;
+      padding: 0;
+    }
+
+    .suspect-block.active {
+      display: block;
+      animation: panelIn 180ms ease;
+    }
+
+    @media (max-width: 1100px) {
+      .main:has(#viewReport.active) {
+        height: auto;
+        overflow: auto;
+      }
+
+      body:has(#viewReport.active),
+      .layout:has(#viewReport.active) {
+        height: auto;
+        overflow: auto;
+      }
+
+      #pageReport.active {
+        overflow: visible;
+        height: auto;
+      }
+
+      .report-layout {
+        grid-template-columns: 1fr;
+        overflow: visible;
+        height: auto;
+      }
+
+      .report-col-suspects {
+        overflow: visible;
+        max-height: none;
+      }
+
+      .report-col-main .report-editor-field {
+        min-height: 200px;
+      }
+    }
+
+    .page-hint {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin: 0 0 16px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+    }
+
+    .toolbar .spacer { flex: 1; }
+
+    label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .field { margin-bottom: 14px; }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 560px) {
+      .row { grid-template-columns: 1fr; }
+    }
+
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      background: var(--input);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 10px 12px;
+      font: inherit;
+      outline: none;
+      transition: border-color var(--ease), box-shadow var(--ease);
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238b97ab' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    select option {
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--focus);
+    }
+
+    input[readonly] {
+      color: var(--muted);
+      cursor: default;
+    }
+
+    .time-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .time-row input { flex: 1; min-width: 0; }
+
+    .time-row .btn-ghost {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    textarea {
+      min-height: 160px;
+      resize: vertical;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-weight: 600;
+      transition: background var(--ease), opacity var(--ease), border-color var(--ease);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #f4f8ff;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+    .btn-ghost:hover:not(:disabled) {
+      background: var(--panel-2);
+      border-color: var(--line-strong);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid transparent;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+    }
+    .btn-danger:hover:not(:disabled) {
+      background: rgba(214, 90, 90, 0.12);
+      border-color: rgba(214, 90, 90, 0.35);
+    }
+
+    .btn-small {
+      padding: 6px 10px;
+      font-size: 0.85rem;
+    }
+
+    .rule {
+      border: none;
+      border-top: 1px solid var(--line);
+      margin: 22px 0;
+    }
+
+    .evidence-add {
+      display: flex;
+      gap: 8px;
+    }
+    .evidence-add input { flex: 1; }
+
+    .evidence-list {
+      list-style: none;
+      margin: 10px 0 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .evidence-list:empty::after {
+      content: "No evidence added yet.";
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-style: italic;
+    }
+
+    .evidence-item {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+
+    .evidence-item .dash {
+      color: var(--muted);
+      font-family: var(--mono);
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+
+    .evidence-item .text {
+      flex: 1;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    .evidence-item .actions {
+      display: flex;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    .evidence-item input {
+      flex: 1;
+      padding: 6px 8px;
+    }
+
+    .suspects-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .suspects-header > label {
+      margin: 0;
+      font-family: var(--display);
+      font-size: 0.95rem;
+      letter-spacing: 0.1em;
+      color: var(--text);
+    }
+
+    .suspects-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .suspects-list:empty::after {
+      content: "No involved parties yet. Click Add Party to begin.";
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-style: italic;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .suspect-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .suspect-block-header h3 {
+      margin: 0;
+      font-family: var(--display);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #cfe6ff;
+    }
+
+    .suspect-block .field { margin-bottom: 8px; }
+    .suspect-block .field:last-child { margin-bottom: 0; }
+
+    .suspect-section-label {
+      display: block;
+      margin: 12px 0 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .suspect-block .party-identity {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 560px) {
+      .suspect-block .party-identity { grid-template-columns: 1fr; }
+    }
+
+    .suspect-block textarea {
+      min-height: 52px;
+      resize: vertical;
+    }
+
+    .suspect-block .charges-list:empty::after {
+      content: "No charges added. Type a charge and click Add, or add N/A.";
+    }
+
+    .suspect-block .party-evidence-list:empty::after {
+      content: "No evidence added. Type an item and click Add.";
+    }
+
+    .footer-fields { margin-top: 8px; }
+
+    .signed {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .signed strong {
+      display: block;
+      color: var(--text);
+      margin-top: 8px;
+      font-family: var(--display);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    #pageSettings.active {
+      overflow-y: auto;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .settings-card {
+      background: rgba(21, 28, 40, 0.95);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 18px;
+      max-width: 480px;
+    }
+
+    .miranda-box {
+      background: rgba(21, 28, 40, 0.9);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .miranda-box summary {
+      cursor: pointer;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      list-style: none;
+      user-select: none;
+    }
+
+    .miranda-box summary::-webkit-details-marker { display: none; }
+
+    .miranda-box summary::before {
+      content: "▸ ";
+      color: var(--accent-bright);
+    }
+
+    .miranda-box details[open] summary::before { content: "▾ "; }
+    .miranda-box details[open] summary { margin-bottom: 8px; }
+
+    .miranda-box p {
+      margin: 0;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    #pageReport .toolbar {
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    #pageReport .rule {
+      margin: 10px 0;
+      flex-shrink: 0;
+    }
+
+    #pageReport .signed {
+      margin-top: 8px;
+      font-size: 0.88rem;
+    }
+
+    #pageReport textarea#vehicle {
+      min-height: 56px;
+      height: 56px;
+    }
+
+    .settings-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin: 6px 0 0;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--success);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.28s ease, opacity 0.28s ease;
+      z-index: 50;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .editor-shell {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--input);
+    }
+
+    .editor-shell .ql-toolbar.ql-snow {
+      border: none;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+      padding: 8px 10px;
+    }
+
+    .editor-shell .ql-container.ql-snow {
+      border: none;
+      font-family: var(--font);
+      font-size: 15px;
+      min-height: 240px;
+      color: var(--text);
+    }
+
+    .editor-shell .ql-editor {
+      min-height: 180px;
+      padding: 12px 14px;
+    }
+
+    .editor-shell .ql-editor.ql-blank::before {
+      color: var(--muted);
+      font-style: normal;
+      left: 14px;
+      right: 14px;
+    }
+
+    .editor-shell .ql-stroke { stroke: var(--muted); }
+    .editor-shell .ql-fill { fill: var(--muted); }
+    .editor-shell .ql-picker { color: var(--muted); }
+
+    .editor-shell .ql-picker-options {
+      background: var(--panel);
+      border-color: var(--line);
+      color: var(--text);
+    }
+
+    .editor-shell .ql-toolbar.ql-snow .ql-picker-label:hover,
+    .editor-shell .ql-toolbar.ql-snow .ql-picker-item:hover,
+    .editor-shell .ql-toolbar.ql-snow button:hover,
+    .editor-shell .ql-toolbar.ql-snow button:focus,
+    .editor-shell .ql-toolbar.ql-snow .ql-picker-label.ql-active,
+    .editor-shell .ql-toolbar.ql-snow button.ql-active {
+      color: var(--accent-bright);
+    }
+
+    .editor-shell .ql-toolbar.ql-snow button:hover .ql-stroke,
+    .editor-shell .ql-toolbar.ql-snow button.ql-active .ql-stroke,
+    .editor-shell .ql-toolbar.ql-snow .ql-picker-label:hover .ql-stroke,
+    .editor-shell .ql-toolbar.ql-snow .ql-picker-label.ql-active .ql-stroke {
+      stroke: var(--accent-bright);
+    }
+
+    .editor-shell .ql-toolbar.ql-snow button:hover .ql-fill,
+    .editor-shell .ql-toolbar.ql-snow button.ql-active .ql-fill {
+      fill: var(--accent-bright);
+    }
+
+    .editor-shell .ql-editor strong { font-weight: 700; }
+    .editor-shell .ql-editor u { text-decoration: underline; }
+    .editor-shell .ql-editor s { text-decoration: line-through; }
+
+    .editor-shell .ql-editor hr {
+      border: none;
+      border-top: 2px solid var(--line);
+      margin: 14px 0;
+    }
+
+    .editor-shell .ql-toolbar.ql-snow button.ql-divider { width: 28px; }
+
+    .editor-shell .ql-toolbar.ql-snow button.ql-divider::before {
+      content: "⎯";
+      font-size: 16px;
+      line-height: 1;
+      color: var(--muted);
+    }
+
+    .editor-shell .ql-toolbar.ql-snow button.ql-divider:hover::before,
+    .editor-shell .ql-toolbar.ql-snow button.ql-divider.ql-active::before {
+      color: var(--accent-bright);
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" id="brandMark">Los Santos Police</div>
+        <h1>Patrol Toolkit</h1>
+        <p id="brandSub">LSPD · Highway · Incident Report</p>
+      </div>
+
+      <div class="app-tabs">
+        <button type="button" class="app-tab active" data-view="lspd" id="tabLspd">LSPD</button>
+        <button type="button" class="app-tab" data-view="highway" id="tabHighway">Highway</button>
+        <button type="button" class="app-tab" data-view="report" id="tabReport">Report</button>
+      </div>
+
+      <div class="sidebar-panel active" id="sidebarLspd">
+        <div class="search-wrap">
+          <input type="search" id="searchLspd" placeholder="Search LSPD handbook…" autocomplete="off" />
+          <div class="search-meta" id="searchMetaLspd"></div>
+        </div>
+
+        <p class="nav-title">Contents</p>
+        <ul class="nav-list" id="navListLspd">
+          <li><a href="#intro">Introduction</a></li>
+          <li><a href="#bia">BIA &amp; Internal Affairs</a></li>
+          <li><a href="#command-structure">Patrol Command Structure</a></li>
+          <li><a href="#patrol-structure">Patrol Structure</a></li>
+          <li><a href="#use-of-force">Use of Force Policy</a></li>
+          <li><a href="#response-guidelines">Response Guidelines</a></li>
+          <li><a href="#duty-codes">Common Duty Codes</a></li>
+          <li><a href="#callsigns">Understanding Callsigns</a></li>
+          <li><a href="#arresting">Arresting &amp; Cautioning</a></li>
+          <li><a href="#processing-1">Processing Suspects — Part 1</a></li>
+          <li><a href="#processing-2">Processing Suspects — Part 2</a></li>
+          <li><a href="#uniform">Uniform Guidelines</a></li>
+          <li><a href="#vehicle-guidelines">Vehicle Guidelines</a></li>
+          <li><a href="#pursuit">Pursuit Escalation</a></li>
+          <li><a href="#impound">Impound Information</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-panel" id="sidebarHighway">
+        <div class="search-wrap">
+          <input type="search" id="searchHighway" placeholder="Search Highway handbook…" autocomplete="off" />
+          <div class="search-meta" id="searchMetaHighway"></div>
+        </div>
+
+        <p class="nav-title">Contents</p>
+        <ul class="nav-list" id="navListHighway">
+          <li><a href="#sahp-intro">Introduction</a></li>
+          <li><a href="#sahp-ranks">Rank Structure</a></li>
+          <li><a href="#sahp-dps">Department of Public Safety</a></li>
+          <li><a href="#sahp-guidelines">Highway Guidelines</a></li>
+          <li><a href="#sahp-uniform">Uniform &amp; Tools</a></li>
+          <li><a href="#sahp-vehicles">Vehicle Guidelines</a></li>
+          <li><a href="#sahp-response">Response Guidelines</a></li>
+          <li><a href="#sahp-pursuit">Pursuit Escalation</a></li>
+          <li><a href="#sahp-force">Use of Force Policy</a></li>
+          <li><a href="#sahp-codes">Common Duty Codes</a></li>
+          <li><a href="#sahp-callsigns">Understanding Callsigns</a></li>
+          <li><a href="#sahp-arresting">Arresting &amp; Cautioning</a></li>
+          <li><a href="#sahp-processing-1">Processing Suspects — Part 1</a></li>
+          <li><a href="#sahp-processing-2">Processing Suspects — Part 2</a></li>
+          <li><a href="#sahp-impound">Impound Information</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-panel" id="sidebarReport">
+        <p class="nav-title">Report tools</p>
+        <ul class="nav-list">
+          <li><a href="#" id="sideReportLink" class="active">Write report</a></li>
+          <li><a href="#" id="sideSettingsLink">Settings</a></li>
+        </ul>
+        <p class="hint" style="margin-top:14px;padding:0 10px;">Miranda rights and the full form are in the main panel. Officer name is saved in this browser.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="app-view active" id="viewLspd">
+
+      <div class="hero" id="intro" data-search="introduction handbook guide patrol hydrate feedback discord">
+        <h2>L.S.P.D Patrol Handbook</h2>
+        <p class="meta">Version: SU25-V1.67 · Last updated by Chief of Police Haruto Tamioka</p>
+        <p>Your guide to everything patrol. If you feel something is missing, please submit feedback via the Discord.</p>
+      </div>
+
+      <div class="handbook-grid">
+
+      <section id="bia" data-search="bia internal affairs corruption bribery abuse power falsifying evidence unethical misconduct integrity accountability fib complaints">
+        <h3>BIA &amp; Internal Affairs</h3>
+        <div class="callout danger">
+          <strong>Corruption is PROHIBITED!</strong>
+          Corruption violates both LSPD values and Hydrate Roleplay rules. Officers must uphold honesty, fairness, and professionalism. Bribery, abuse of power, falsifying evidence, or any unethical conduct is strictly prohibited.
+        </div>
+        <p><strong>Internal Affairs</strong> investigates misconduct within the police force. Reports can be filed by officers or the public.</p>
+        <p><strong>Bureau of Integrity and Accountability (BIA)</strong> is an external agency that handles complaints of government corruption, including LSPD, EMS, and DoJ. Reports can also be submitted by both staff of departments and civilians.</p>
+        <p>Report any suspected corrupt activities by fellow members of the force to the BIA immediately. A receptionist at the FIB Building (PC: 398) will take your complaints.</p>
+        <p>All reports will be handled with confidentiality and professionalism to ensure that the integrity of our police force is maintained.</p>
+      </section>
+
+      <section id="command-structure" data-search="command structure chief assistant patrol commander captain lieutenant department public safety oversight certifications">
+        <h3>LSPD Patrol Command Structure</h3>
+        <table>
+          <thead>
+            <tr><th>Role</th><th>Responsibility</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Department of Public Safety</td><td>Oversight of all Government Departments</td></tr>
+            <tr><td>Chief &amp; Assistant Chief of Police</td><td>Oversight of Patrol &amp; Certifications</td></tr>
+            <tr><td>Patrol Commander</td><td>Oversight of all Patrol Operations</td></tr>
+            <tr><td>Patrol Captain</td><td>Sub-Division Leader</td></tr>
+            <tr><td>Patrol Lieutenants</td><td>Oversight of all Patrol, with a focus on one of the above sub-divisions</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="patrol-structure" data-search="patrol structure ranks cadet solo senior officer sergeant lieutenant command swat smg fto detective hwp bike airwing probation 2up">
+        <h3>LSPD Patrol Structure</h3>
+        <table>
+          <thead>
+            <tr><th>Rank / Role</th><th>Details</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>L.S.P.D Command</td><td>Oversight of all Patrol Officers</td></tr>
+            <tr><td>Patrol Senior Sergeants</td><td>Officers being considered for Command</td></tr>
+            <tr><td>Patrol Sergeants</td><td>Supervisory position. Can call imperative, spikes &amp; pits</td></tr>
+            <tr><td>Patrol Senior Officers</td><td>Eligible for SWAT &amp; SMG Certification</td></tr>
+            <tr><td>Patrol Officers</td><td>Qualified officers, off probation period. Eligible for FTO, DETECTIVE, HWP, BIKE, and AIRWING</td></tr>
+            <tr><td>Cadet &amp; Solo Cadets</td><td>Newer officers in training or probationary period. Cadets are required to be 2up'd when out on patrol</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="use-of-force" data-search="use of force lethal less lethal physical non-physical verbal commands taser beanbag baton firearm knife hostage">
+        <h3>Use of Force Policy</h3>
+        <table>
+          <thead>
+            <tr><th>Force Level</th><th>Definition</th><th>Example</th><th>Equipment</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Non-Physical Force</td>
+              <td>Verbal commands to convince or calm a suspect</td>
+              <td>Negotiating with a suspect to release a hostage</td>
+              <td>Calm voice and presence of yourself and other officers</td>
+            </tr>
+            <tr>
+              <td>Physical Force</td>
+              <td>Physical force to detain a suspect without projectile weapons</td>
+              <td>Tackling a suspect to effect an arrest</td>
+              <td>Tackling, Baton</td>
+            </tr>
+            <tr>
+              <td>Less Lethal Force</td>
+              <td>Less than lethal options to detain, without use of a firearm</td>
+              <td>Tasing a suspect to immobilise them to effect an arrest</td>
+              <td>Taser, Beanbag</td>
+            </tr>
+            <tr>
+              <td>Lethal Force</td>
+              <td>Lethal options designed to remove a threat as quickly as possible</td>
+              <td>Shooting an armed offender advancing on police with a knife</td>
+              <td>Firearms</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout">
+          <strong>IF IN DOUBT</strong>
+          Match the force presented with your own response in line with the above.
+        </div>
+      </section>
+
+      <section id="response-guidelines" data-search="response guidelines dispatch store robbery bank pacific drug sales car chopping shots fired swat units maximum">
+        <h3>Response Guidelines</h3>
+        <table>
+          <thead>
+            <tr><th>Dispatch Call</th><th>Max Units</th><th>SWAT Permitted?</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Store Robbery</td><td>4 Units Maximum</td><td>TRUE</td></tr>
+            <tr><td>Bank Robbery</td><td>4 Units Maximum</td><td>TRUE</td></tr>
+            <tr><td>Pacific Bank Robbery</td><td>8 Units Maximum</td><td>TRUE</td></tr>
+            <tr><td>Drug Sales</td><td>2 Units Maximum</td><td>FALSE</td></tr>
+            <tr><td>Car Chopping</td><td>2 Units Maximum</td><td>FALSE</td></tr>
+            <tr><td>Shots Fired</td><td>4 Units Maximum</td><td>FALSE</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="duty-codes" data-search="duty codes code 1 2 3 4 6 10-4 10-13 10-14 10-31 10-38 10-50 10-71 10-76 10-80 10-90 10-95 10-99 radio">
+        <h3>Common Duty Codes</h3>
+        <div class="grid-2">
+          <div class="code-card"><strong>Code 1</strong>Routine call — no lights or sirens</div>
+          <div class="code-card"><strong>Code 2</strong>Urgent — lights, no sirens</div>
+          <div class="code-card"><strong>Code 3</strong>Emergency — lights and sirens</div>
+          <div class="code-card"><strong>Code 4</strong>All clear</div>
+          <div class="code-card"><strong>Code 6</strong>Out of vehicle &amp; investigating</div>
+          <div class="code-card"><strong>10-4</strong>Acknowledgement</div>
+          <div class="code-card"><strong>10-13</strong>Officer down</div>
+          <div class="code-card"><strong>10-14</strong>Medic down</div>
+          <div class="code-card"><strong>10-31</strong>Burglary</div>
+          <div class="code-card"><strong>10-38</strong>Traffic stop</div>
+          <div class="code-card"><strong>10-50</strong>Motor vehicle accident</div>
+          <div class="code-card"><strong>10-71</strong>Shots fired</div>
+          <div class="code-card"><strong>10-76</strong>En route</div>
+          <div class="code-card"><strong>10-80</strong>Pursuit in progress</div>
+          <div class="code-card"><strong>10-90</strong>Robbery in progress</div>
+          <div class="code-card"><strong>10-95</strong>Suspect in custody</div>
+          <div class="code-card"><strong>10-99</strong>Wanted person / stolen vehicle</div>
+        </div>
+      </section>
+
+      <section id="callsigns" data-search="callsigns radio identifier rank department lspd bcso swat sahp fib sasp doc ems towing bia cadet officer sergeant lieutenant captain commander chief commissioner">
+        <h3>Understanding Callsigns</h3>
+        <p>Example format: <strong>1-F-407</strong></p>
+        <ul>
+          <li><strong>1</strong> — Represents the rank of the officer</li>
+          <li><strong>F</strong> — Represents which department</li>
+          <li><strong>407</strong> — Officer unique identifier</li>
+        </ul>
+        <p>Officers are only expected to say their unique identifier over radio.</p>
+        <div class="grid-2">
+          <div>
+            <p><strong>LSPD Ranks</strong></p>
+            <table>
+              <tbody>
+                <tr><td>0</td><td>Cadet</td></tr>
+                <tr><td>1</td><td>Solo Cadet</td></tr>
+                <tr><td>2</td><td>Officer</td></tr>
+                <tr><td>3</td><td>Senior Officer</td></tr>
+                <tr><td>4</td><td>Sergeant</td></tr>
+                <tr><td>5</td><td>Senior Sergeant</td></tr>
+                <tr><td>6</td><td>Lieutenant</td></tr>
+                <tr><td>7</td><td>Captain</td></tr>
+                <tr><td>8</td><td>Commander</td></tr>
+                <tr><td>9</td><td>Chief of Police or Assistant Chief</td></tr>
+                <tr><td>X</td><td>Deputy Commissioner</td></tr>
+                <tr><td>Z</td><td>Commissioner</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <p><strong>Departments</strong></p>
+            <table>
+              <tbody>
+                <tr><td>L</td><td>LSPD</td></tr>
+                <tr><td>B</td><td>BCSO</td></tr>
+                <tr><td>S</td><td>SWAT</td></tr>
+                <tr><td>H</td><td>SAHP</td></tr>
+                <tr><td>F</td><td>FIB</td></tr>
+                <tr><td>X</td><td>SASP (Staff Department)</td></tr>
+                <tr><td>C</td><td>DOC</td></tr>
+                <tr><td>E</td><td>EMS</td></tr>
+                <tr><td>T</td><td>Towing</td></tr>
+                <tr><td>Z</td><td>BIA</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="arresting" data-search="arrest caution miranda rights petrov felony misdemeanor infraction fine jail attorney bench trial guilty">
+        <h3>Arresting &amp; Cautioning Suspects</h3>
+        <blockquote>
+          “You have the right to remain silent. Anything you say can and will be used against you in court. You have the right to an attorney, if one is available. You also have the right to contest any and all charges pressed against you at a bench trial, provided that a Judge is available.”
+          <br /><br />
+          “Do you understand these rights?”
+        </blockquote>
+        <p><strong>Petrov Rights</strong> — Introduced: 14/03/2025</p>
+        <table>
+          <thead>
+            <tr><th>Charge Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Infraction</td><td>On-the-spot fine. Once fined, offender is to be released on the spot.</td></tr>
+            <tr><td>Misdemeanor</td><td>Minor charge. Can be either a fine and/or jail time (charge dependent).</td></tr>
+            <tr><td>Felony</td><td>Major charge. Will always include jail time.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="processing-1" data-search="processing suspects mdt report evidence locker photo felony transport station jail misdemeanor">
+        <h3>Processing Suspects — Part 1</h3>
+        <ul>
+          <li>Charges that result in jail time (many misdemeanors, all felonies): you are required to transport the offender to a police station.</li>
+          <li>Charges that do <strong>not</strong> result in jail time: offenders can be charged on scene and released.</li>
+          <li>If the offender does <strong>not</strong> have a photo in the MDT and <strong>is</strong> being charged with a felony, organize taking one at the station prior to sentencing. This is mandatory.</li>
+        </ul>
+        <p>Open the <strong>Reports</strong> tab. Click <strong>New Report</strong>, then write a brief write-up of what happened (recommended for felonies). Select all involved officers and link any evidence lockers or photos taken.</p>
+        <p>This report will be saved for future reference, and officers can go back and look at evidence collected.</p>
+      </section>
+
+      <section id="processing-2" data-search="processing criminal charges edit charges process criminal guilty mdt jail prison boat helicopter transport">
+        <h3>Processing Suspects — Part 2</h3>
+        <ul>
+          <li>Charges that result in jail time (many misdemeanors, all felonies): transport the offender to a police station.</li>
+          <li>Charges that do not result in jail time: charge on scene and release.</li>
+        </ul>
+        <ol>
+          <li>In the <strong>Reports</strong> tab of the MDT, select <strong>+ Add Criminals</strong> and choose the individual you wish to charge.</li>
+          <li>Select charges using <strong>Edit Charges</strong>.</li>
+          <li>Once all charges are set, sentence per sentencing guidelines (fine &amp; jail criminal if the charge requires jail time).</li>
+          <li>Select <strong>Process Criminal</strong> and pleaded guilty only if they admitted guilt.</li>
+        </ol>
+        <p>When jailing an offender, they are teleported straight to prison. If you wish to transport by boat or helicopter, this is also an option and encouraged.</p>
+      </section>
+
+      <section id="uniform" data-search="uniform guidelines patches vest rank insignia sleeve mask hat glasses patrol">
+        <h3>Uniform Guidelines</h3>
+        <ul>
+          <li>Optional arm patches</li>
+          <li>Optional vest application; if wearing one, use the black variant</li>
+          <li>You can wear the shirt either long sleeved or short sleeved</li>
+          <li>Rank insignia must be worn (rank on sleeve)</li>
+          <li>No over-the-top hats or glasses. Wear something appropriate.</li>
+          <li>No masks when deployed as Patrol</li>
+        </ul>
+        <p><em>Refer to the handbook slideshow for rank insignia and patrol uniform example images.</em></p>
+      </section>
+
+      <section id="vehicle-guidelines" data-search="vehicle guidelines modifications tires rims tint lights body kit black white pearlescent swat hwp patrol liveries">
+        <h3>Vehicle Guidelines</h3>
+        <p><strong>Modifications &amp; Restrictions</strong></p>
+        <ul>
+          <li>Stock tires and rims are required</li>
+          <li>No tire smoke is permitted</li>
+          <li>Officers may adjust emergency light sets and body kits</li>
+          <li>Window tint: approved levels are Light or Medium only. Dark tint is not permitted unless the vehicle is UM approved</li>
+        </ul>
+        <p><strong>Permitted Theme</strong></p>
+        <ul>
+          <li>Primary: Black</li>
+          <li>Secondary: White</li>
+        </ul>
+        <p><strong>FAQs</strong></p>
+        <ul>
+          <li><strong>Can I use pearlescent colors?</strong> No — no certifications allow pearlescent within LSPD.</li>
+          <li><strong>Can I use a fully blacked out vehicle?</strong> No — please adhere to the Permitted Theme.</li>
+          <li><strong>I'm SWAT &amp; HWP certified — can I use those vehicles on patrol?</strong> No — you may only use Patrol liveries while on LSPD Patrol.</li>
+        </ul>
+      </section>
+
+      <section id="pursuit" data-search="pursuit escalation 10-80 imperative pits spike strips tires vehicle swap sergeant lieutenant death ramming">
+        <h3>Pursuit Escalation Guidelines</h3>
+        <table>
+          <thead>
+            <tr><th>Stage</th><th>What becomes available</th><th>Authorization</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Regular Pursuit (10-80)</td><td>4 units attached</td><td>—</td></tr>
+            <tr><td>First vehicle swap</td><td>Pursuit can now be deemed imperative</td><td>Sergeant+</td></tr>
+            <tr><td>Second vehicle swap</td><td>Pursuit can now have pits / spike strips approval</td><td>Sergeant+</td></tr>
+            <tr><td>Third vehicle swap</td><td>Pursuit can now have shots at tires approval</td><td>Lieutenant+</td></tr>
+          </tbody>
+        </table>
+        <p>Pits on interfering vehicles may be authorized if the vehicles are death ramming. If the ramming worsens further, command may authorize shots at vehicle.</p>
+      </section>
+
+      <section id="impound" data-search="impound misdemeanor felony infraction violent felony lockup fine hours evading charges">
+        <h3>Impound Information</h3>
+        <p>LSPD officers are authorized to impound vehicles when an offense has been committed that warrants charges. The type of impound corresponds to the classification of the charge — for example, evading results in a misdemeanor impound.</p>
+        <p>A <strong>Violent Felony</strong> impound may only be issued if the offense involved violence, such as shooting at an officer.</p>
+        <table>
+          <thead>
+            <tr><th>Classification</th><th>Time in Lockup</th><th>Max Fine</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Infraction</td><td>N/A</td><td>MAX $2K</td></tr>
+            <tr><td>Misdemeanor</td><td>12 hours</td><td>MAX $5K</td></tr>
+            <tr><td>Felony</td><td>24 hours</td><td>MAX $10K</td></tr>
+            <tr><td>Violent Felony</td><td>72 hours</td><td>MAX $50K</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      </div>
+
+      <div class="no-results" id="noResultsLspd">No sections match your search.</div>
+    
+      </div>
+
+      <div class="app-view" id="viewHighway">
+
+      <div class="hero" id="sahp-intro" data-search="introduction sahp highway handbook guide hydrate tee tee">
+        <h2>S.A.H.P Patrol Handbook</h2>
+        <p class="meta">Version: 3.1 · Last updated by Chief of Highway Tee Tee</p>
+        <p>Your guide to Highway. Highway ON TOP!</p>
+      </div>
+
+      <div class="handbook-grid">
+
+      <section id="sahp-ranks" data-search="rank structure chief assistant lieutenant sergeant corporal senior trooper junior probationary">
+        <h3>S.A.H.P Rank Structure</h3>
+        <table>
+          <thead>
+            <tr><th>Rank</th><th>Details</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Chief</td><td>Oversight of Highway operations</td></tr>
+            <tr><td>Assistant Chief</td><td>Senior Command, 2IC</td></tr>
+            <tr><td>Lieutenant</td><td>Command, oversight of all Patrol Operations</td></tr>
+            <tr><td>Sergeant</td><td>Officers being considered for command</td></tr>
+            <tr><td>Corporal</td><td>Can approve PIT maneuvers</td></tr>
+            <tr><td>Senior Trooper</td><td>Can approve imperative pursuit and apply for Interceptor</td></tr>
+            <tr><td>Trooper</td><td>Able to apply for SMG cert</td></tr>
+            <tr><td>Junior Trooper</td><td>Keep doing what you are doing</td></tr>
+            <tr><td>Probationary Trooper</td><td>Stay in your lane and you’ll make it to Junior</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="sahp-dps" data-search="dps department public safety corruption bribery abuse power falsifying evidence bia fib complaints">
+        <h3>Department of Public Safety (DPS)</h3>
+        <div class="callout danger">
+          <strong>Corruption is PROHIBITED!</strong>
+          Corruption violates both LSPD values and Hydrate Roleplay rules. Officers must uphold honesty, fairness, and professionalism. Bribery, abuse of power, falsifying evidence, or any unethical conduct is strictly prohibited.
+        </div>
+        <p><strong>DPS</strong> investigates misconduct within the police force. Reports can be filed by officers or the public.</p>
+        <p>The <strong>Department of Public Safety (DPS)</strong> is an external agency that handles complaints of government corruption, including LSPD, EMS, and DoJ. Reports can also be submitted by both staff of departments and civilians.</p>
+        <p>Report any suspected corrupt activities by fellow members of the force to the BIA immediately. A receptionist at the FIB Building (PC: 398) will take your complaints.</p>
+        <p>All reports will be handled with confidentiality and professionalism to ensure that the integrity of our police force is maintained.</p>
+      </section>
+
+      <section id="sahp-guidelines" data-search="highway guidelines interceptor responsibilities traffic stops speeding rbt pits imperative command">
+        <h3>Highway Guidelines</h3>
+        <p><strong>Main responsibilities</strong> — On Highway patrol, our primary responsibility is attending crime scenes where a pursuit is likely (e.g. bank robbery). Secondary responsibilities include traffic stops, speeding infringements, random breath tests, and defective vehicles.</p>
+        <p>As Highway we lead by example with driving standards, pursuit comms, spacing (enforcing pursuit spacing when necessary), and making appropriate split-second decisions under pressure.</p>
+        <div class="callout">
+          <strong>Authority</strong>
+          Highway Corporals and above who are fully aware of the situation can call pursuits imperative. Highway Sergeants and above who are fully aware of the situation can approve PITs. Judgement and common sense must be applied to every situation. Command always have overruling authority. Failure to comply will result in disciplinary action.
+        </div>
+        <p><strong>Interceptor</strong></p>
+        <ul>
+          <li>Interceptors can <strong>only</strong> be taken out by interceptor-certified officers. You must be Senior Trooper+ to apply for Interceptor Cert. Every officer Lieutenant and below must pass a strict interceptor test.</li>
+          <li>Only <strong>1 interceptor unit</strong> can be deployed for every <strong>2 Highway units</strong> on duty, with a maximum of <strong>2 interceptors</strong> at any given time.</li>
+          <li>Use common sense and judgement if an interceptor is necessary. If it is likely to be OP, fall back from primary, or run parallels or blocks.</li>
+          <li>Interceptor operators are expected to have the highest driving etiquette in the force.</li>
+          <li>If your interceptor becomes non-recoverable, you cannot take another out until tsunami.</li>
+        </ul>
+        <div class="callout danger">
+          <strong>Disciplinary</strong>
+          Failure to adhere to the above will result in disciplinary action.
+        </div>
+      </section>
+
+      <section id="sahp-uniform" data-search="uniform vest shirt rank insignia hats glasses masks lockbox barriers spikes cones">
+        <h3>Uniform Guidelines &amp; Tools</h3>
+        <ul>
+          <li>Optional vest application; if wearing one please use the black variant</li>
+          <li>You can wear the shirt either long sleeved or short sleeved</li>
+          <li>Rank insignia must be worn (rank on sleeve or collar)</li>
+          <li>No over-the-top hats or glasses — wear something appropriate</li>
+          <li>No masks when deployed as Patrol</li>
+        </ul>
+        <p><strong>Lockbox necessities</strong> — all officers should keep these items in their lockboxes:</p>
+        <ul>
+          <li>Barriers</li>
+          <li>Spikes</li>
+          <li>Cones</li>
+        </ul>
+      </section>
+
+      <section id="sahp-vehicles" data-search="vehicle guidelines modifications tire smoke lights tint white pearlescent swat hwp livery">
+        <h3>Vehicle Guidelines</h3>
+        <p><strong>Modifications &amp; restrictions</strong></p>
+        <ul>
+          <li>No tire smoke is permitted</li>
+          <li>Officers may adjust emergency light sets and body kits</li>
+          <li>Window tint: approved levels are Light or Medium only</li>
+        </ul>
+        <p><strong>Permitted theme</strong> — Primary: White · Secondary: White</p>
+        <p><strong>FAQs</strong></p>
+        <ul>
+          <li><strong>Q:</strong> Can I use pearlescent colors?<br /><strong>A:</strong> Unless it is white pearlescent, no you cannot.</li>
+          <li><strong>Q:</strong> Can I use a fully blacked out vehicle?<br /><strong>A:</strong> Is black white? No it is not.</li>
+          <li><strong>Q:</strong> I’m SWAT &amp; HWP certified — can I use those vehicles on patrol?<br /><strong>A:</strong> No. You may only use Highway liveries while out on S.A.H.P patrol.</li>
+        </ul>
+      </section>
+
+      <section id="sahp-response" data-search="response guidelines dispatch store bank pacific drug chopping shots swat units">
+        <h3>Response Guidelines</h3>
+        <table>
+          <thead>
+            <tr><th>Dispatch Call</th><th>Max Units</th><th>SWAT Permitted?</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Store Robbery</td><td>4 Units Maximum</td><td>TRUE</td></tr>
+            <tr><td>Bank Robbery</td><td>4 Units Maximum</td><td>TRUE</td></tr>
+            <tr><td>Pacific Bank Robbery</td><td>8 Units Maximum</td><td>TRUE</td></tr>
+            <tr><td>Drug Sales</td><td>2 Units Maximum</td><td>FALSE</td></tr>
+            <tr><td>Car Chopping</td><td>2 Units Maximum</td><td>FALSE</td></tr>
+            <tr><td>Shots Fired</td><td>4 Units Maximum</td><td>FALSE</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="sahp-pursuit" data-search="pursuit escalation 10-80 vehicle swap imperative pits spikes shots tires sergeant lieutenant corporal">
+        <h3>Pursuit Escalation Guidelines</h3>
+        <table>
+          <thead>
+            <tr><th>Stage</th><th>Authorization</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Regular Pursuit (10-80)</strong> — 4 units attached</td><td>—</td></tr>
+            <tr><td><strong>First Vehicle Swap</strong> — Pursuit can now be deemed imperative</td><td>Sergeant+ or S.A.H.P Senior Trooper</td></tr>
+            <tr><td><strong>Second Vehicle Swap</strong> — Pits / spike strips approval</td><td>Sergeant+ or S.A.H.P Senior Trooper</td></tr>
+            <tr><td><strong>Third Vehicle Swap</strong> — Shots at tires approval</td><td>Lieutenant+ or S.A.H.P Corporal</td></tr>
+          </tbody>
+        </table>
+        <p>Pits on interfering vehicles may be authorized if the vehicles are death ramming. If the ramming worsens further, command may authorize shots at vehicle.</p>
+      </section>
+
+      <section id="sahp-force" data-search="use of force lethal less lethal physical non-physical verbal taser beanbag baton firearm">
+        <h3>Use of Force Policy</h3>
+        <table>
+          <thead>
+            <tr><th>Force Level</th><th>Definition</th><th>Example</th><th>Equipment</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Non-Physical Force</td>
+              <td>Verbal commands to convince or calm a suspect</td>
+              <td>Negotiating with a suspect to release a hostage</td>
+              <td>Calm voice and presence of yourself and other officers</td>
+            </tr>
+            <tr>
+              <td>Physical Force</td>
+              <td>Physical force to detain a suspect without projectile weapons</td>
+              <td>Tackling a suspect to effect an arrest</td>
+              <td>Tackling, Baton</td>
+            </tr>
+            <tr>
+              <td>Less Lethal Force</td>
+              <td>Less than lethal options to detain, without use of a firearm</td>
+              <td>Tasing a suspect to immobilise them to effect an arrest</td>
+              <td>Taser, Beanbag</td>
+            </tr>
+            <tr>
+              <td>Lethal Force</td>
+              <td>Lethal options designed to remove a threat as quickly as possible</td>
+              <td>Shooting an armed offender advancing on police with a knife</td>
+              <td>Firearms</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout">
+          <strong>IF IN DOUBT</strong>
+          Match the force presented with your own response in line with the above.
+        </div>
+      </section>
+
+      <section id="sahp-codes" data-search="duty codes code 1 2 3 4 6 10-4 10-13 10-14 10-31 10-38 10-50 10-71 10-76 10-80 10-90 10-95 10-99">
+        <h3>Common Duty Codes</h3>
+        <div class="grid-2">
+          <div class="code-card"><strong>Code 1</strong>Routine call — no lights or sirens</div>
+          <div class="code-card"><strong>Code 2</strong>Urgent — lights, no sirens</div>
+          <div class="code-card"><strong>Code 3</strong>Emergency — lights and sirens</div>
+          <div class="code-card"><strong>Code 4</strong>All clear</div>
+          <div class="code-card"><strong>Code 6</strong>Out of vehicle &amp; investigating</div>
+          <div class="code-card"><strong>10-4</strong>Acknowledgement</div>
+          <div class="code-card"><strong>10-13</strong>Officer down</div>
+          <div class="code-card"><strong>10-14</strong>Medic down</div>
+          <div class="code-card"><strong>10-31</strong>Burglary</div>
+          <div class="code-card"><strong>10-38</strong>Traffic stop</div>
+          <div class="code-card"><strong>10-50</strong>Motor vehicle accident</div>
+          <div class="code-card"><strong>10-71</strong>Shots fired</div>
+          <div class="code-card"><strong>10-76</strong>En route</div>
+          <div class="code-card"><strong>10-80</strong>Pursuit in progress</div>
+          <div class="code-card"><strong>10-90</strong>Robbery in progress</div>
+          <div class="code-card"><strong>10-95</strong>Suspect in custody</div>
+          <div class="code-card"><strong>10-99</strong>Wanted person / stolen vehicle</div>
+        </div>
+      </section>
+
+      <section id="sahp-callsigns" data-search="callsigns rank department sahp probationary junior trooper corporal sergeant lieutenant deputy chief">
+        <h3>Understanding Callsigns</h3>
+        <p>Example format: <strong>1-H-407</strong></p>
+        <ul>
+          <li><strong>1</strong> — Represents the rank of the officer</li>
+          <li><strong>H</strong> — Represents which department</li>
+          <li><strong>407</strong> — Officer unique identifier</li>
+        </ul>
+        <p>Officers are only expected to say their unique identifier over radio.</p>
+        <div class="grid-2">
+          <div>
+            <p><strong>S.A.H.P Ranks</strong></p>
+            <table>
+              <tbody>
+                <tr><td>0</td><td>Probationary Trooper</td></tr>
+                <tr><td>1</td><td>Junior Trooper</td></tr>
+                <tr><td>2</td><td>Trooper</td></tr>
+                <tr><td>3</td><td>Senior Trooper</td></tr>
+                <tr><td>4</td><td>Corporal</td></tr>
+                <tr><td>5</td><td>Sergeant</td></tr>
+                <tr><td>6</td><td>Lieutenant</td></tr>
+                <tr><td>7</td><td>Deputy Chief</td></tr>
+                <tr><td>8</td><td>Chief</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <p><strong>Departments</strong></p>
+            <table>
+              <tbody>
+                <tr><td>L</td><td>LSPD</td></tr>
+                <tr><td>B</td><td>BCSO</td></tr>
+                <tr><td>S</td><td>SWAT</td></tr>
+                <tr><td>H</td><td>SAHP</td></tr>
+                <tr><td>F</td><td>FIB</td></tr>
+                <tr><td>X</td><td>SASP (Staff Department)</td></tr>
+                <tr><td>C</td><td>DOC</td></tr>
+                <tr><td>E</td><td>EMS</td></tr>
+                <tr><td>T</td><td>Towing</td></tr>
+                <tr><td>Z</td><td>BIA</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="sahp-arresting" data-search="arrest caution miranda petrov felony misdemeanor infraction fine jail attorney bench trial">
+        <h3>Arresting &amp; Cautioning Suspects</h3>
+        <blockquote>
+          “You have the right to remain silent. Anything you say can and will be used against you in court. You have the right to an attorney, if one is available. You also have the right to contest any and all charges pressed against you at a bench trial, provided that a Judge is available.”
+        </blockquote>
+        <p><strong>“Do you understand these rights?”</strong></p>
+        <p><strong>Petrov Rights</strong></p>
+        <table>
+          <thead>
+            <tr><th>Classification</th><th>Details</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Infraction</td><td>On the spot fine. Once fined, offender is to be released on the spot.</td></tr>
+            <tr><td>Misdemeanor</td><td>Minor charge. Can be either a fine and/or jail time (charge dependent).</td></tr>
+            <tr><td>Felony</td><td>Major charge. Will always include jail time.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="sahp-processing-1" data-search="processing jail transport station photo mdt report evidence lockers">
+        <h3>Processing Suspects — Part 1</h3>
+        <ul>
+          <li>Charges that result in jail time (many misdemeanors, all felonies): transport the offender to a police station.</li>
+          <li>Charges that do not result in jail time: offenders can be charged on scene and released.</li>
+          <li>If the offender does not have a photo in the MDT and is being charged with a felony, organize taking one at the station prior to sentencing. This is mandatory.</li>
+          <li>Open the Reports tab → New Report. Write a brief write-up of what happened (recommended for felonies), select all involved officers, and link any evidence lockers or photos taken.</li>
+        </ul>
+        <p>This report will be saved for future reference, and officers can go back and look at evidence collected.</p>
+      </section>
+
+      <section id="sahp-processing-2" data-search="processing add criminals edit charges process criminal guilty prison boat helicopter">
+        <h3>Processing Suspects — Part 2</h3>
+        <ul>
+          <li>In the Reports tab of the MDT, select <strong>+ Add Criminals</strong> and select the individual you wish to charge.</li>
+          <li>Select charges using <strong>Edit Charges</strong>. Once all charges are set, sentence per sentencing guidelines (fine &amp; jail criminal if the charge requires jail time).</li>
+          <li>Once completed, select <strong>Process Criminal</strong> and pleaded guilty only if they admitted guilt.</li>
+          <li>When jailing an offender, they are teleported straight to prison. Transport by boat or helicopter is also an option and encouraged.</li>
+        </ul>
+      </section>
+
+      <section id="sahp-impound" data-search="impound misdemeanor felony infraction violent felony lockup fine hours evading">
+        <h3>Impound Information</h3>
+        <p>S.A.H.P officers are authorized to impound vehicles when an offense has been committed that warrants charges. The type of impound corresponds to the classification of the charge — for example, evading results in a misdemeanor impound.</p>
+        <p>A <strong>Violent Felony</strong> impound may only be issued if the offense involved violence, such as shooting at an officer.</p>
+        <table>
+          <thead>
+            <tr><th>Classification</th><th>Time in Lockup</th><th>Max Fine</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Infraction</td><td>N/A</td><td>MAX $2K</td></tr>
+            <tr><td>Misdemeanor</td><td>12 hours</td><td>MAX $5K</td></tr>
+            <tr><td>Felony</td><td>24 hours</td><td>MAX $10K</td></tr>
+            <tr><td>Violent Felony</td><td>72 hours</td><td>MAX $50K</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      </div>
+
+      <div class="no-results" id="noResultsHighway">No sections match your search.</div>
+
+      </div>
+
+      <div class="app-view" id="viewReport">
+
+    <!-- REPORT PAGE -->
+    <div class="page active" id="pageReport">
+      <h1>Incident Report</h1>
+
+      <div class="miranda-box">
+        <details>
+          <summary>Miranda Rights</summary>
+          <p>You have the right to remain silent. Anything you say can and will be used against you in court. You have the right to an attorney, if one is available. You also have the right to request to contest any and all charges pressed against you at a bench trial, provided that a Judge is available. Do you understand these rights?</p>
+        </details>
+      </div>
+
+      <div class="toolbar">
+        <button type="button" class="btn-ghost" id="settingsBtn">Settings</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" id="clearBtn">Clear form</button>
+        <button type="button" class="btn-primary" id="copyBtn">Copy report</button>
+      </div>
+
+      <div class="report-layout">
+        <div class="report-col report-col-main">
+          <div class="row">
+            <div class="field">
+              <label for="date">Date</label>
+              <input type="text" id="date" readonly title="Sets automatically when you copy" />
+            </div>
+            <div class="field">
+              <label for="time">Time</label>
+              <div class="time-row">
+                <input type="text" id="time" readonly title="Click Update time to set" />
+                <button type="button" class="btn-ghost" id="updateTimeBtn">Update time</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="location">Location</label>
+            <input type="text" id="location" placeholder="e.g. Maze Bank - Bay City Ave" autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label for="vehicle">Vehicle Details</label>
+            <textarea id="vehicle" placeholder="Plate, VIN, Make/Model, Owner, etc."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="evidenceInput">Evidence</label>
+            <div class="evidence-add">
+              <input type="text" id="evidenceInput" placeholder="Type evidence item, then Add" autocomplete="off" />
+              <button type="button" class="btn-primary" id="addEvidenceBtn">Add</button>
+            </div>
+            <ul class="evidence-list" id="evidenceList" aria-live="polite"></ul>
+          </div>
+
+          <hr class="rule" />
+
+          <div class="field report-editor-field">
+            <label>Report</label>
+            <div class="editor-shell">
+              <div id="reportEditor"></div>
+            </div>
+          </div>
+
+          <hr class="rule" />
+
+          <div class="field footer-fields">
+            <label for="filed">Filed By</label>
+            <input type="text" id="filed" readonly title="Set in Settings" />
+          </div>
+
+          <div class="signed">
+            Signed,<br />
+            <span id="signedName"></span>
+            <strong>LSPD</strong>
+          </div>
+        </div>
+
+        <div class="report-col report-col-suspects">
+          <div class="suspects-header">
+            <label>Involved Parties</label>
+            <button type="button" class="btn-primary btn-small" id="addSuspectBtn">Add Party</button>
+          </div>
+          <div class="suspect-tabs" id="suspectTabs" aria-label="Suspect tabs"></div>
+          <div class="suspects-list" id="suspectsList" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="pageSettings">
+      <h1 class="page-title">Settings</h1>
+      <p class="page-hint">Saved in this browser for future reports.</p>
+
+      <div class="toolbar">
+        <button type="button" class="btn-ghost" id="backBtn">← Back to report</button>
+      </div>
+
+      <div class="settings-card">
+        <div class="field" style="margin-bottom: 0;">
+          <label for="officerName">Officer name (Filed)</label>
+          <input type="text" id="officerName" placeholder="e.g. Jim Manning" autocomplete="off" />
+          <p class="hint">This fills the FILED line on every report.</p>
+        </div>
+        <div class="settings-actions">
+          <button type="button" class="btn-primary" id="saveSettingsBtn">Save</button>
+        </div>
+      </div>
+    </div>
+  
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status">Copied to clipboard</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+  <script>
+    // ---- App view switching ----
+    const tabLspd = document.getElementById("tabLspd");
+    const tabHighway = document.getElementById("tabHighway");
+    const tabReport = document.getElementById("tabReport");
+    const viewLspd = document.getElementById("viewLspd");
+    const viewHighway = document.getElementById("viewHighway");
+    const viewReport = document.getElementById("viewReport");
+    const sidebarLspd = document.getElementById("sidebarLspd");
+    const sidebarHighway = document.getElementById("sidebarHighway");
+    const sidebarReport = document.getElementById("sidebarReport");
+    const brandMark = document.getElementById("brandMark");
+
+    function showAppView(name) {
+      const isLspd = name === "lspd";
+      const isHighway = name === "highway";
+      const isReport = name === "report";
+
+      tabLspd.classList.toggle("active", isLspd);
+      tabHighway.classList.toggle("active", isHighway);
+      tabReport.classList.toggle("active", isReport);
+
+      viewLspd.classList.toggle("active", isLspd);
+      viewHighway.classList.toggle("active", isHighway);
+      viewReport.classList.toggle("active", isReport);
+
+      sidebarLspd.classList.toggle("active", isLspd);
+      sidebarHighway.classList.toggle("active", isHighway);
+      sidebarReport.classList.toggle("active", isReport);
+
+      document.body.classList.toggle("theme-highway", isHighway);
+
+      if (isHighway) {
+        brandMark.textContent = "San Andreas Highway Patrol";
+      } else if (isLspd) {
+        brandMark.textContent = "Los Santos Police";
+      } else {
+        brandMark.textContent = "Patrol Toolkit";
+      }
+
+      if (isReport) {
+        document.getElementById("sideReportLink").classList.add("active");
+        document.getElementById("sideSettingsLink").classList.remove("active");
+      }
+    }
+
+    tabLspd.addEventListener("click", () => showAppView("lspd"));
+    tabHighway.addEventListener("click", () => showAppView("highway"));
+    tabReport.addEventListener("click", () => showAppView("report"));
+
+    document.getElementById("navListLspd").addEventListener("click", (e) => {
+      if (e.target.closest("a")) showAppView("lspd");
+    });
+    document.getElementById("navListHighway").addEventListener("click", (e) => {
+      if (e.target.closest("a")) showAppView("highway");
+    });
+
+    // ---- Handbook search (per handbook) ----
+
+    function clearMarks(node) {
+      node.querySelectorAll("mark").forEach((mark) => {
+        const parent = mark.parentNode;
+        parent.replaceChild(document.createTextNode(mark.textContent), mark);
+        parent.normalize();
+      });
+    }
+
+    function highlightText(node, query) {
+      if (!query) return;
+      const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+      const textNodes = [];
+      while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+      const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(`(${escaped})`, "gi");
+
+      for (const textNode of textNodes) {
+        const text = textNode.nodeValue;
+        if (!regex.test(text)) continue;
+        regex.lastIndex = 0;
+        const frag = document.createDocumentFragment();
+        let last = 0;
+        text.replace(regex, (match, _g, offset) => {
+          if (offset > last) frag.appendChild(document.createTextNode(text.slice(last, offset)));
+          const mark = document.createElement("mark");
+          mark.textContent = match;
+          frag.appendChild(mark);
+          last = offset + match.length;
+          return match;
+        });
+        if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+        textNode.parentNode.replaceChild(frag, textNode);
+      }
+    }
+
+    function setupHandbookSearch({ viewId, searchId, metaId, navId, noResultsId }) {
+      const view = document.getElementById(viewId);
+      const searchInput = document.getElementById(searchId);
+      const searchMeta = document.getElementById(metaId);
+      const noResults = document.getElementById(noResultsId);
+      const sections = [...view.querySelectorAll("section, .hero")];
+      const navLinks = [...document.querySelectorAll(`#${navId} a`)];
+
+      function runSearch() {
+        const query = searchInput.value.trim().toLowerCase();
+        let visible = 0;
+
+        sections.forEach((section) => {
+          clearMarks(section);
+          const haystack = (
+            (section.dataset.search || "") +
+            " " +
+            section.textContent
+          ).toLowerCase();
+          const match = !query || haystack.includes(query);
+          section.classList.toggle("hidden", !match);
+          if (match) {
+            visible++;
+            if (query) highlightText(section, query);
+          }
+        });
+
+        navLinks.forEach((link) => {
+          const id = link.getAttribute("href").slice(1);
+          const target = document.getElementById(id);
+          const match = target && !target.classList.contains("hidden");
+          link.classList.toggle("hidden", !match);
+        });
+
+        noResults.classList.toggle("show", query && visible === 0);
+        searchMeta.textContent = query
+          ? visible === 0
+            ? "No matches"
+            : `${visible} section${visible === 1 ? "" : "s"} found`
+          : "";
+      }
+
+      searchInput.addEventListener("input", runSearch);
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            if (!view.classList.contains("active")) return;
+            const id = entry.target.id;
+            navLinks.forEach((link) => {
+              link.classList.toggle("active", link.getAttribute("href") === `#${id}`);
+            });
+          });
+        },
+        { rootMargin: "-20% 0px -70% 0px", threshold: 0 }
+      );
+
+      sections.forEach((section) => observer.observe(section));
+    }
+
+    setupHandbookSearch({
+      viewId: "viewLspd",
+      searchId: "searchLspd",
+      metaId: "searchMetaLspd",
+      navId: "navListLspd",
+      noResultsId: "noResultsLspd",
+    });
+
+    setupHandbookSearch({
+      viewId: "viewHighway",
+      searchId: "searchHighway",
+      metaId: "searchMetaHighway",
+      navId: "navListHighway",
+      noResultsId: "noResultsHighway",
+    });
+  
+
+    // ---- Incident report ----
+
+    const STORAGE_KEY = "incidentReportSettings";
+
+    const dateEl = document.getElementById("date");
+    const timeEl = document.getElementById("time");
+    const locationEl = document.getElementById("location");
+    const suspectsList = document.getElementById("suspectsList");
+    const suspectTabs = document.getElementById("suspectTabs");
+    const vehicleEl = document.getElementById("vehicle");
+    const filedEl = document.getElementById("filed");
+    const signedNameEl = document.getElementById("signedName");
+    const officerNameEl = document.getElementById("officerName");
+    const evidenceInput = document.getElementById("evidenceInput");
+    const evidenceList = document.getElementById("evidenceList");
+    const toast = document.getElementById("toast");
+    const pageReport = document.getElementById("pageReport");
+    const pageSettings = document.getElementById("pageSettings");
+
+    const BlockEmbed = Quill.import("blots/block/embed");
+
+    class DividerBlot extends BlockEmbed {}
+    DividerBlot.blotName = "divider";
+    DividerBlot.tagName = "hr";
+    Quill.register(DividerBlot);
+
+    const quill = new Quill("#reportEditor", {
+      theme: "snow",
+      placeholder: "Write the full narrative of the incident…",
+      modules: {
+        toolbar: {
+          container: [
+            ["bold", "underline", "strike"],
+            [{ align: "" }, { align: "center" }, { align: "right" }, { align: "justify" }],
+            ["divider"],
+          ],
+          handlers: {
+            divider() {
+              const range = this.quill.getSelection(true);
+              this.quill.insertText(range.index, "\n", Quill.sources.USER);
+              this.quill.insertEmbed(range.index + 1, "divider", true, Quill.sources.USER);
+              this.quill.setSelection(range.index + 2, Quill.sources.SILENT);
+            },
+          },
+        },
+      },
+    });
+
+    /** @type {{ id: number, text: string }[]} */
+    let evidence = [];
+    let nextId = 1;
+    let editingId = null;
+    let nextSuspectId = 1;
+    let activeSuspectId = null;
+
+    function pad(n) {
+      return String(n).padStart(2, "0");
+    }
+
+    function formatDate(d) {
+      return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+    }
+
+    function formatTime(d) {
+      let h = d.getHours();
+      const m = pad(d.getMinutes());
+      const ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12;
+      if (h === 0) h = 12;
+      return `${h}:${m} ${ampm}`;
+    }
+
+    function fillDate() {
+      dateEl.value = formatDate(new Date());
+    }
+
+    function fillTime() {
+      timeEl.value = formatTime(new Date());
+    }
+
+    function getReportPlain() {
+      const delta = quill.getContents();
+      let text = "";
+      for (const op of delta.ops || []) {
+        if (typeof op.insert === "string") {
+          text += op.insert;
+        } else if (op.insert && op.insert.divider) {
+          text += "\n\n";
+        }
+      }
+      return text.replace(/\n+$/, "").trim();
+    }
+
+    function getReportHtml() {
+      const html = quill.root.innerHTML.trim();
+      if (!html || html === "<p><br></p>") return "";
+      return html;
+    }
+
+    function clearReportEditor() {
+      quill.setText("");
+    }
+
+    function loadSettings() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { officerName: "" };
+        const data = JSON.parse(raw);
+        return {
+          officerName: typeof data.officerName === "string" ? data.officerName : "",
+        };
+      } catch {
+        return { officerName: "" };
+      }
+    }
+
+    function saveSettings(settings) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    }
+
+    function applyOfficerName() {
+      const { officerName } = loadSettings();
+      filedEl.value = officerName;
+      signedNameEl.textContent = officerName;
+      officerNameEl.value = officerName;
+    }
+
+    function showPage(name) {
+      pageReport.classList.toggle("active", name === "report");
+      pageSettings.classList.toggle("active", name === "settings");
+      if (name === "settings") {
+        applyOfficerName();
+        officerNameEl.focus();
+      }
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function getSuspectBlocks() {
+      return [...suspectsList.querySelectorAll(".suspect-block")];
+    }
+
+    function getSuspectLabel(block, index) {
+      const name = block.querySelector(".suspect-name")?.value.trim() || "";
+      return name || `Party ${index + 1}`;
+    }
+
+    function selectSuspect(id) {
+      const blocks = getSuspectBlocks();
+      if (!blocks.length) {
+        activeSuspectId = null;
+        refreshSuspectTabs();
+        return;
+      }
+
+      const match = blocks.find((b) => b.dataset.id === String(id));
+      activeSuspectId = match ? match.dataset.id : blocks[0].dataset.id;
+
+      blocks.forEach((block) => {
+        block.classList.toggle("active", block.dataset.id === activeSuspectId);
+      });
+      refreshSuspectTabs();
+    }
+
+    function refreshSuspectTabs() {
+      const blocks = getSuspectBlocks();
+      suspectTabs.innerHTML = "";
+      suspectTabs.classList.toggle("visible", blocks.length > 1);
+
+      blocks.forEach((block, index) => {
+        const title = block.querySelector(".suspect-block-header h3");
+        if (title) title.textContent = getSuspectLabel(block, index);
+
+        if (blocks.length <= 1) return;
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "suspect-tab";
+        if (block.dataset.id === activeSuspectId) btn.classList.add("active");
+        btn.textContent = getSuspectLabel(block, index);
+        btn.title = btn.textContent;
+        btn.addEventListener("click", () => selectSuspect(block.dataset.id));
+        suspectTabs.appendChild(btn);
+      });
+    }
+
+    function removeSuspect(block) {
+      const blocks = getSuspectBlocks();
+      const index = blocks.indexOf(block);
+      const wasActive = block.dataset.id === activeSuspectId;
+      block.remove();
+
+      const remaining = getSuspectBlocks();
+      if (!remaining.length) {
+        activeSuspectId = null;
+        refreshSuspectTabs();
+        return;
+      }
+
+      if (wasActive) {
+        const next = remaining[Math.min(index, remaining.length - 1)];
+        selectSuspect(next.dataset.id);
+      } else {
+        refreshSuspectTabs();
+      }
+    }
+
+    function appendBulletItem(listEl, text) {
+      const li = document.createElement("li");
+      li.className = "evidence-item";
+      li.innerHTML = `
+        <span class="dash">•</span>
+        <span class="text"></span>
+        <div class="actions">
+          <button type="button" class="btn-danger remove-btn">Remove</button>
+        </div>
+      `;
+      li.querySelector(".text").textContent = text;
+      li.querySelector(".remove-btn").addEventListener("click", () => li.remove());
+      listEl.appendChild(li);
+    }
+
+    function wireBulletList(block, { inputSel, btnSel, listSel }) {
+      const input = block.querySelector(inputSel);
+      const btn = block.querySelector(btnSel);
+      const list = block.querySelector(listSel);
+
+      function addItem() {
+        const text = input.value.trim();
+        if (!text) {
+          input.focus();
+          return;
+        }
+        appendBulletItem(list, text);
+        input.value = "";
+        input.focus();
+      }
+
+      btn.addEventListener("click", addItem);
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addItem();
+        }
+      });
+    }
+
+    function createSuspectBlock(id) {
+      const block = document.createElement("div");
+      block.className = "suspect-block";
+      block.dataset.id = String(id);
+      block.innerHTML = `
+        <div class="suspect-block-header">
+          <h3>Party</h3>
+          <button type="button" class="btn-danger remove-suspect-btn">Remove</button>
+        </div>
+        <div class="party-identity">
+          <div class="field">
+            <label>Name</label>
+            <input type="text" class="suspect-name" placeholder="Full name" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label>Involvement</label>
+            <select class="suspect-involvement">
+              <option value="">Select…</option>
+              <option value="Suspect">Suspect</option>
+              <option value="Victim">Victim</option>
+              <option value="Witness">Witness</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Charges</label>
+          <div class="evidence-add">
+            <input type="text" class="suspect-charge-input" placeholder="Type a charge or N/A, then Add" autocomplete="off" />
+            <button type="button" class="btn-primary add-charge-btn">Add</button>
+          </div>
+          <ul class="evidence-list charges-list" aria-live="polite"></ul>
+        </div>
+        <div class="field">
+          <label>Relevant Details</label>
+          <textarea class="suspect-details" placeholder="Relevant details about this party…"></textarea>
+        </div>
+        <div class="field">
+          <label>Processing Procedure</label>
+          <textarea class="suspect-processing" placeholder="How this party was processed…"></textarea>
+        </div>
+        <div class="field">
+          <label>Evidence</label>
+          <div class="evidence-add">
+            <input type="text" class="suspect-evidence-input" placeholder="Type an evidence item, then Add" autocomplete="off" />
+            <button type="button" class="btn-primary add-party-evidence-btn">Add</button>
+          </div>
+          <ul class="evidence-list party-evidence-list" aria-live="polite"></ul>
+        </div>
+        <div class="field">
+          <label>Action Taken</label>
+          <select class="suspect-action">
+            <option value="">Select…</option>
+            <option value="Arrested">Arrested</option>
+            <option value="Released">Released</option>
+            <option value="Cautioned">Cautioned</option>
+            <option value="Referred">Referred</option>
+            <option value="Cleared">Cleared</option>
+          </select>
+        </div>
+      `;
+
+      block.querySelector(".remove-suspect-btn").addEventListener("click", () => {
+        removeSuspect(block);
+      });
+
+      block.querySelector(".suspect-name").addEventListener("input", () => {
+        refreshSuspectTabs();
+      });
+
+      wireBulletList(block, {
+        inputSel: ".suspect-charge-input",
+        btnSel: ".add-charge-btn",
+        listSel: ".charges-list",
+      });
+      wireBulletList(block, {
+        inputSel: ".suspect-evidence-input",
+        btnSel: ".add-party-evidence-btn",
+        listSel: ".party-evidence-list",
+      });
+
+      return block;
+    }
+
+    function addSuspect() {
+      const block = createSuspectBlock(nextSuspectId++);
+      suspectsList.appendChild(block);
+      selectSuspect(block.dataset.id);
+      const nameInput = block.querySelector(".suspect-name");
+      if (nameInput) nameInput.focus();
+    }
+
+    function readBulletTexts(block, listSel) {
+      return [...block.querySelectorAll(`${listSel} .text`)]
+        .map((el) => el.textContent.trim())
+        .filter(Boolean);
+    }
+
+    function getSuspectsData() {
+      return getSuspectBlocks().map((block) => ({
+        name: block.querySelector(".suspect-name")?.value.trim() || "",
+        involvement: block.querySelector(".suspect-involvement")?.value || "",
+        charges: readBulletTexts(block, ".charges-list"),
+        details: block.querySelector(".suspect-details")?.value.trim() || "",
+        processing: block.querySelector(".suspect-processing")?.value.trim() || "",
+        evidence: readBulletTexts(block, ".party-evidence-list"),
+        action: block.querySelector(".suspect-action")?.value || "",
+      }));
+    }
+
+    function hasSuspectContent(s) {
+      return !!(
+        s.name ||
+        s.involvement ||
+        s.charges.length ||
+        s.details ||
+        s.processing ||
+        s.evidence.length ||
+        s.action
+      );
+    }
+
+    function formatSuspectPlain(s) {
+      const lines = ["Involved Party:"];
+
+      if (s.name) lines.push(`Name: ${s.name}`);
+      if (s.involvement) lines.push(`Involvement: ${s.involvement}`);
+
+      if (s.charges.length) {
+        lines.push("Charges:");
+        for (const charge of s.charges) lines.push(`- ${charge}`);
+      }
+
+      if (s.details) {
+        lines.push("Relevant Details:", s.details);
+      }
+
+      if (s.processing) {
+        lines.push("Processing Procedure:", s.processing);
+      }
+
+      if (s.evidence.length) {
+        lines.push("Evidence:");
+        for (const item of s.evidence) lines.push(`- ${item}`);
+      }
+
+      if (s.action) lines.push(`Action Taken: ${s.action}`);
+
+      return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+    }
+
+    function formatSuspectHtml(s) {
+      const parts = [`<p><strong>Involved Party:</strong></p>`];
+      const identity = [];
+
+      if (s.name) identity.push(`Name: ${escapeHtml(s.name)}`);
+      if (s.involvement) identity.push(`Involvement: ${escapeHtml(s.involvement)}`);
+      if (identity.length) parts.push(`<p>${identity.join("<br>")}</p>`);
+
+      if (s.charges.length) {
+        const chargesHtml = s.charges
+          .map((c) => `- ${escapeHtml(c)}`)
+          .join("<br>");
+        parts.push(`<p>Charges:<br>${chargesHtml}</p>`);
+      }
+
+      if (s.details) {
+        parts.push(
+          `<p><strong>Relevant Details:</strong><br>${escapeHtml(s.details).replace(/\n/g, "<br>")}</p>`
+        );
+      }
+
+      if (s.processing) {
+        parts.push(
+          `<p><strong>Processing Procedure:</strong><br>${escapeHtml(s.processing).replace(/\n/g, "<br>")}</p>`
+        );
+      }
+
+      if (s.evidence.length) {
+        const evidenceHtml = s.evidence
+          .map((e) => `- ${escapeHtml(e)}`)
+          .join("<br>");
+        parts.push(`<p>Evidence:<br>${evidenceHtml}</p>`);
+      }
+
+      if (s.action) {
+        parts.push(`<p><strong>Action Taken:</strong> ${escapeHtml(s.action)}</p>`);
+      }
+
+      return parts.join("\n");
+    }
+
+    function renderEvidence() {
+      evidenceList.innerHTML = "";
+      for (const item of evidence) {
+        const li = document.createElement("li");
+        li.className = "evidence-item";
+        li.dataset.id = String(item.id);
+
+        if (editingId === item.id) {
+          li.innerHTML = `
+            <span class="dash">-</span>
+            <input type="text" class="edit-input" />
+            <div class="actions">
+              <button type="button" class="btn-primary btn-small save-btn">Save</button>
+              <button type="button" class="btn-ghost btn-small cancel-btn">Cancel</button>
+            </div>
+          `;
+          const input = li.querySelector(".edit-input");
+          input.value = item.text;
+          requestAnimationFrame(() => {
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+          });
+
+          const save = () => {
+            const v = input.value.trim();
+            if (!v) return;
+            item.text = v;
+            editingId = null;
+            renderEvidence();
+          };
+
+          li.querySelector(".save-btn").addEventListener("click", save);
+          li.querySelector(".cancel-btn").addEventListener("click", () => {
+            editingId = null;
+            renderEvidence();
+          });
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              save();
+            }
+            if (e.key === "Escape") {
+              editingId = null;
+              renderEvidence();
+            }
+          });
+        } else {
+          li.innerHTML = `
+            <span class="dash">-</span>
+            <span class="text"></span>
+            <div class="actions">
+              <button type="button" class="btn-ghost btn-small edit-btn">Edit</button>
+              <button type="button" class="btn-danger remove-btn">Remove</button>
+            </div>
+          `;
+          li.querySelector(".text").textContent = item.text;
+          li.querySelector(".edit-btn").addEventListener("click", () => {
+            editingId = item.id;
+            renderEvidence();
+          });
+          li.querySelector(".remove-btn").addEventListener("click", () => {
+            evidence = evidence.filter((e) => e.id !== item.id);
+            if (editingId === item.id) editingId = null;
+            renderEvidence();
+          });
+        }
+
+        evidenceList.appendChild(li);
+      }
+    }
+
+    function addEvidence() {
+      const text = evidenceInput.value.trim();
+      if (!text) {
+        evidenceInput.focus();
+        return;
+      }
+      evidence.push({ id: nextId++, text });
+      evidenceInput.value = "";
+      evidenceInput.focus();
+      renderEvidence();
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function buildReportPlain() {
+      const lines = ["INCIDENT REPORT", ""];
+
+      const date = dateEl.value.trim();
+      if (date) lines.push(`DATE: ${date}`, "");
+
+      const time = timeEl.value.trim();
+      if (time) lines.push(`TIME: ${time}`, "");
+
+      const location = locationEl.value.trim();
+      if (location) lines.push(`LOCATION: ${location}`, "");
+
+      const suspects = getSuspectsData().filter(hasSuspectContent);
+      if (suspects.length > 0) {
+        suspects.forEach((s, i) => {
+          if (i > 0) lines.push("", "----------", "");
+          lines.push(formatSuspectPlain(s), "");
+        });
+      }
+
+      const vehicle = vehicleEl.value.trim();
+      if (vehicle) lines.push("Vehicle Details:", vehicle, "");
+
+      if (evidence.length > 0) {
+        lines.push(
+          "Evidence:",
+          ...evidence.map((e) => `- ${e.text}`),
+          ""
+        );
+      }
+
+      const report = getReportPlain();
+      if (report) lines.push("", "REPORT:", "", report, "");
+
+      const filed = filedEl.value.trim();
+      if (filed) lines.push("", `FILED BY : ${filed}`, "");
+
+      lines.push("", "Signed,");
+      if (filed) lines.push(filed);
+      lines.push("LSPD");
+
+      return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+    }
+
+    function buildReportHtml() {
+      const parts = [
+        `<p><strong>INCIDENT REPORT</strong></p>`,
+      ];
+
+      const date = dateEl.value.trim();
+      if (date) parts.push(`<p>DATE: ${escapeHtml(date)}</p>`);
+
+      const time = timeEl.value.trim();
+      if (time) parts.push(`<p>TIME: ${escapeHtml(time)}</p>`);
+
+      const location = locationEl.value.trim();
+      if (location) parts.push(`<p>LOCATION: ${escapeHtml(location)}</p>`);
+
+      const suspects = getSuspectsData().filter(hasSuspectContent);
+      if (suspects.length > 0) {
+        suspects.forEach((s, i) => {
+          if (i > 0) {
+            parts.push(
+              `<hr style="border:none;border-top:2px solid #3a4050;margin:16px 0;">`
+            );
+          }
+          parts.push(formatSuspectHtml(s));
+        });
+      }
+
+      const vehicle = vehicleEl.value.trim();
+      if (vehicle) {
+        parts.push(
+          `<p>Vehicle Details:<br>${escapeHtml(vehicle).replace(/\n/g, "<br>")}</p>`
+        );
+      }
+
+      if (evidence.length > 0) {
+        const evidenceBlock = evidence
+          .map((e) => `- ${escapeHtml(e.text)}`)
+          .join("<br>");
+        parts.push(`<p>Evidence:<br>${evidenceBlock}</p>`);
+      }
+
+      const reportHtml = getReportHtml();
+      const reportPlain = getReportPlain();
+      if (reportHtml || reportPlain) {
+        const reportBody =
+          reportHtml ||
+          `<p>${escapeHtml(reportPlain).replace(/\n/g, "<br>")}</p>`;
+        parts.push(
+          `<hr style="border:none;border-top:2px solid #3a4050;margin:16px 0;">`,
+          `<p><strong>REPORT:</strong></p>`,
+          reportBody
+        );
+      }
+
+      const filed = filedEl.value.trim();
+      parts.push(
+        `<hr style="border:none;border-top:2px solid #3a4050;margin:16px 0;">`
+      );
+      if (filed) parts.push(`<p>FILED : ${escapeHtml(filed)}</p>`);
+      parts.push(`<p>Signed,</p>`);
+      if (filed) parts.push(`<p>${escapeHtml(filed)}</p>`);
+      parts.push(`<p><strong>LSPD | MRPD District</strong></p>`);
+
+      return `
+<div style="font-family:Segoe UI,system-ui,sans-serif;line-height:1.45;white-space:normal;">
+  ${parts.join("\n  ")}
+</div>`.trim();
+    }
+
+    function copyPlainFallback(plain) {
+      const ta = document.createElement("textarea");
+      ta.value = plain;
+      ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;padding:0;border:0;opacity:0;";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      const ok = document.execCommand("copy");
+      ta.remove();
+      return ok;
+    }
+
+    async function copyReport() {
+      fillDate();
+      applyOfficerName();
+      const plain = buildReportPlain();
+      const html = buildReportHtml();
+
+      // Prefer the Clipboard API only in a secure context (https/localhost).
+      // On file:// it usually fails after await, and by then the browser has
+      // already consumed the click gesture — so execCommand fallback also fails.
+      const canUseClipboardApi =
+        window.isSecureContext && navigator.clipboard;
+
+      try {
+        if (
+          canUseClipboardApi &&
+          window.ClipboardItem &&
+          typeof navigator.clipboard.write === "function"
+        ) {
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              "text/plain": new Blob([plain], { type: "text/plain" }),
+              "text/html": new Blob([html], { type: "text/html" }),
+            }),
+          ]);
+          showToast("Copied to clipboard");
+          return;
+        }
+
+        if (canUseClipboardApi && typeof navigator.clipboard.writeText === "function") {
+          await navigator.clipboard.writeText(plain);
+          showToast("Copied to clipboard");
+          return;
+        }
+      } catch {
+        // Fall through to sync fallback while we may still have user activation
+        // only if write failed synchronously; after await, use fallback anyway.
+      }
+
+      if (copyPlainFallback(plain)) {
+        showToast("Copied to clipboard");
+      } else {
+        showToast("Copy failed — select and copy manually");
+      }
+    }
+
+    function clearForm() {
+      if (!confirm("Clear the whole form?")) return;
+      locationEl.value = "";
+      suspectsList.innerHTML = "";
+      suspectTabs.innerHTML = "";
+      suspectTabs.classList.remove("visible");
+      nextSuspectId = 1;
+      activeSuspectId = null;
+      vehicleEl.value = "";
+      clearReportEditor();
+      evidenceInput.value = "";
+      evidence = [];
+      editingId = null;
+      dateEl.value = "";
+      timeEl.value = "";
+      applyOfficerName();
+      renderEvidence();
+    }
+
+    function saveOfficerSettings() {
+      const officerName = officerNameEl.value.trim();
+      saveSettings({ officerName });
+      applyOfficerName();
+      showToast("Settings saved");
+    }
+
+    document.getElementById("addSuspectBtn").addEventListener("click", addSuspect);
+    document.getElementById("addEvidenceBtn").addEventListener("click", addEvidence);
+    evidenceInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addEvidence();
+      }
+    });
+    document.getElementById("copyBtn").addEventListener("click", copyReport);
+    document.getElementById("updateTimeBtn").addEventListener("click", fillTime);
+    document.getElementById("clearBtn").addEventListener("click", clearForm);
+    document.getElementById("settingsBtn").addEventListener("click", () => showPage("settings"));
+    document.getElementById("backBtn").addEventListener("click", () => showPage("report"));
+    document.getElementById("saveSettingsBtn").addEventListener("click", saveOfficerSettings);
+    officerNameEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        saveOfficerSettings();
+      }
+    });
+
+    applyOfficerName();
+    renderEvidence();
+  
+    document.getElementById("sideReportLink").addEventListener("click", (e) => {
+      e.preventDefault();
+      showPage("report");
+      document.getElementById("sideReportLink").classList.add("active");
+      document.getElementById("sideSettingsLink").classList.remove("active");
+    });
+    document.getElementById("sideSettingsLink").addEventListener("click", (e) => {
+      e.preventDefault();
+      showPage("settings");
+      document.getElementById("sideSettingsLink").classList.add("active");
+      document.getElementById("sideReportLink").classList.remove("active");
+    });
+    // Keep sidebar link in sync with in-page settings buttons
+    const _origShowPage = showPage;
+    showPage = function(name) {
+      _origShowPage(name);
+      document.getElementById("sideReportLink").classList.toggle("active", name === "report");
+      document.getElementById("sideSettingsLink").classList.toggle("active", name === "settings");
+    };
+  </script>
+</body>
+</html>

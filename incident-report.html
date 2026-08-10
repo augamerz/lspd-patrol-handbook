@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Incident Report</title>
+  <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #1a1d23;
+      --panel: #23272f;
+      --line: #3a4050;
+      --text: #e8eaed;
+      --muted: #9aa3b2;
+      --accent: #4a9eff;
+      --accent-hover: #6bb0ff;
+      --danger: #e85d5d;
+      --input: #2b303a;
+      --focus: #4a9eff66;
+      --font: "Segoe UI", system-ui, sans-serif;
+      --mono: "Cascadia Mono", "Consolas", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.45;
+      padding: 24px 16px 48px;
+    }
+
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .page-hint {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin: 0 0 16px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+    }
+
+    .toolbar .spacer { flex: 1; }
+
+    label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .field { margin-bottom: 14px; }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 560px) {
+      .row { grid-template-columns: 1fr; }
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      background: var(--input);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 10px 12px;
+      font: inherit;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--focus);
+    }
+
+    input[readonly] {
+      color: var(--muted);
+      cursor: default;
+    }
+
+    .time-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .time-row input { flex: 1; min-width: 0; }
+
+    .time-row .btn-ghost {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    textarea {
+      min-height: 160px;
+      resize: vertical;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-weight: 600;
+      transition: background 0.15s, opacity 0.15s;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0b1220;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+    .btn-ghost:hover:not(:disabled) { background: var(--panel); }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid transparent;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+    }
+    .btn-danger:hover:not(:disabled) {
+      background: #e85d5d22;
+      border-color: #e85d5d55;
+    }
+
+    .btn-small {
+      padding: 6px 10px;
+      font-size: 0.85rem;
+    }
+
+    .rule {
+      border: none;
+      border-top: 1px solid var(--line);
+      margin: 22px 0;
+    }
+
+    .evidence-add {
+      display: flex;
+      gap: 8px;
+    }
+    .evidence-add input { flex: 1; }
+
+    .evidence-list {
+      list-style: none;
+      margin: 10px 0 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .evidence-list:empty::after {
+      content: "No evidence added yet.";
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-style: italic;
+    }
+
+    .evidence-item {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+
+    .evidence-item .dash {
+      color: var(--muted);
+      font-family: var(--mono);
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+
+    .evidence-item .text {
+      flex: 1;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    .evidence-item .actions {
+      display: flex;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    .evidence-item input {
+      flex: 1;
+      padding: 6px 8px;
+    }
+
+    .footer-fields { margin-top: 8px; }
+
+    .signed {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .signed strong {
+      display: block;
+      color: var(--text);
+      margin-top: 8px;
+      letter-spacing: 0.04em;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .settings-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+    }
+
+    .miranda-box {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-bottom: 16px;
+    }
+
+    .miranda-box h2 {
+      margin: 0 0 10px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .miranda-box p {
+      margin: 0;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: var(--text);
+    }
+
+    .settings-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin: 6px 0 0;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #2e7d4f;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.25s, opacity 0.25s;
+      z-index: 50;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Quill dark theme */
+    .editor-shell {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--input);
+    }
+
+    .editor-shell .ql-toolbar.ql-snow {
+      border: none;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+      padding: 8px 10px;
+    }
+
+    .editor-shell .ql-container.ql-snow {
+      border: none;
+      font-family: var(--font);
+      font-size: 15px;
+      min-height: 180px;
+      color: var(--text);
+    }
+
+    .editor-shell .ql-editor {
+      min-height: 180px;
+      padding: 12px 14px;
+    }
+
+    .editor-shell .ql-editor.ql-blank::before {
+      color: var(--muted);
+      font-style: normal;
+      left: 14px;
+      right: 14px;
+    }
+
+    .editor-shell .ql-stroke {
+      stroke: var(--muted);
+    }
+
+    .editor-shell .ql-fill {
+      fill: var(--muted);
+    }
+
+    .editor-shell .ql-picker {
+      color: var(--muted);
+    }
+
+    .editor-shell .ql-picker-options {
+      background: var(--panel);
+      border-color: var(--line);
+      color: var(--text);
+    }
+
+    .editor-shell .ql-toolbar.ql-snow .ql-picker-label:hover,
+    .editor-shell .ql-toolbar.ql-snow .ql-picker-item:hover,
+    .editor-shell .ql-toolbar.ql-snow button:hover,
+    .editor-shell .ql-toolbar.ql-snow button:focus,
+    .editor-shell .ql-toolbar.ql-snow .ql-picker-label.ql-active,
+    .editor-shell .ql-toolbar.ql-snow button.ql-active {
+      color: var(--accent);
+    }
+
+    .editor-shell .ql-toolbar.ql-snow button:hover .ql-stroke,
+    .editor-shell .ql-toolbar.ql-snow button.ql-active .ql-stroke,
+    .editor-shell .ql-toolbar.ql-snow .ql-picker-label:hover .ql-stroke,
+    .editor-shell .ql-toolbar.ql-snow .ql-picker-label.ql-active .ql-stroke {
+      stroke: var(--accent);
+    }
+
+    .editor-shell .ql-toolbar.ql-snow button:hover .ql-fill,
+    .editor-shell .ql-toolbar.ql-snow button.ql-active .ql-fill {
+      fill: var(--accent);
+    }
+
+    .editor-shell .ql-editor strong { font-weight: 700; }
+    .editor-shell .ql-editor u { text-decoration: underline; }
+    .editor-shell .ql-editor s { text-decoration: line-through; }
+
+    .editor-shell .ql-editor hr {
+      border: none;
+      border-top: 2px solid var(--line);
+      margin: 14px 0;
+    }
+
+    .editor-shell .ql-toolbar.ql-snow button.ql-divider {
+      width: 28px;
+    }
+
+    .editor-shell .ql-toolbar.ql-snow button.ql-divider::before {
+      content: "⎯";
+      font-size: 16px;
+      line-height: 1;
+      color: var(--muted);
+    }
+
+    .editor-shell .ql-toolbar.ql-snow button.ql-divider:hover::before,
+    .editor-shell .ql-toolbar.ql-snow button.ql-divider.ql-active::before {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- REPORT PAGE -->
+    <div class="page active" id="pageReport">
+      <h1>Incident Report</h1>
+
+      <div class="miranda-box">
+        <h2>Miranda Rights</h2>
+        <p>You have the right to remain silent. Anything you say can and will be used against you in court. You have the right to an attorney, if one is available. You also have the right to request to contest any and all charges pressed against you at a bench trial, provided that a Judge is available. Do you understand these rights?</p>
+      </div>
+
+      <div class="toolbar">
+        <button type="button" class="btn-ghost" id="settingsBtn">Settings</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" id="clearBtn">Clear form</button>
+        <button type="button" class="btn-primary" id="copyBtn">Copy report</button>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="date">Date</label>
+          <input type="text" id="date" readonly title="Sets automatically when you copy" />
+        </div>
+        <div class="field">
+          <label for="time">Time</label>
+          <div class="time-row">
+            <input type="text" id="time" readonly title="Click Update time to set" />
+            <button type="button" class="btn-ghost" id="updateTimeBtn">Update time</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="location">Location</label>
+        <input type="text" id="location" placeholder="e.g. Maze Bank - Bay City Ave" autocomplete="off" />
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="suspectName">Suspect Name</label>
+          <input type="text" id="suspectName" placeholder="Full name" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="suspectStateId">State ID</label>
+          <input type="text" id="suspectStateId" inputmode="numeric" pattern="[0-9]*" placeholder="Numbers only" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="plea">Plea</label>
+        <input type="text" id="plea" placeholder="e.g. Guilty / Not Guilty / No Contest" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label for="vehicle">Vehicle Details</label>
+        <textarea id="vehicle" placeholder="Plate, VIN, Make/Model, Owner, etc."></textarea>
+      </div>
+
+      <div class="field">
+        <label for="evidenceInput">Evidence</label>
+        <div class="evidence-add">
+          <input type="text" id="evidenceInput" placeholder="Type evidence item, then Add" autocomplete="off" />
+          <button type="button" class="btn-primary" id="addEvidenceBtn">Add</button>
+        </div>
+        <ul class="evidence-list" id="evidenceList" aria-live="polite"></ul>
+      </div>
+
+      <hr class="rule" />
+
+      <div class="field">
+        <label>Report</label>
+        <div class="editor-shell">
+          <div id="reportEditor"></div>
+        </div>
+      </div>
+
+      <hr class="rule" />
+
+      <div class="field footer-fields">
+        <label for="filed">Filed By</label>
+        <input type="text" id="filed" readonly title="Set in Settings" />
+      </div>
+
+      <div class="signed">
+        Signed,<br />
+        <span id="signedName"></span>
+        <strong>LSPD</strong>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="pageSettings">
+      <h1>Settings</h1>
+      <p class="page-hint">Saved in this browser for future reports.</p>
+
+      <div class="toolbar">
+        <button type="button" class="btn-ghost" id="backBtn">← Back to report</button>
+      </div>
+
+      <div class="settings-card">
+        <div class="field" style="margin-bottom: 0;">
+          <label for="officerName">Officer name (Filed)</label>
+          <input type="text" id="officerName" placeholder="e.g. Jim Manning" autocomplete="off" />
+          <p class="hint">This fills the FILED line on every report.</p>
+        </div>
+        <div class="settings-actions">
+          <button type="button" class="btn-primary" id="saveSettingsBtn">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status">Copied to clipboard</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+  <script>
+    const STORAGE_KEY = "incidentReportSettings";
+
+    const dateEl = document.getElementById("date");
+    const timeEl = document.getElementById("time");
+    const locationEl = document.getElementById("location");
+    const suspectNameEl = document.getElementById("suspectName");
+    const suspectStateIdEl = document.getElementById("suspectStateId");
+    const pleaEl = document.getElementById("plea");
+    const vehicleEl = document.getElementById("vehicle");
+    const filedEl = document.getElementById("filed");
+    const signedNameEl = document.getElementById("signedName");
+    const officerNameEl = document.getElementById("officerName");
+    const evidenceInput = document.getElementById("evidenceInput");
+    const evidenceList = document.getElementById("evidenceList");
+    const toast = document.getElementById("toast");
+    const pageReport = document.getElementById("pageReport");
+    const pageSettings = document.getElementById("pageSettings");
+
+    const BlockEmbed = Quill.import("blots/block/embed");
+
+    class DividerBlot extends BlockEmbed {}
+    DividerBlot.blotName = "divider";
+    DividerBlot.tagName = "hr";
+    Quill.register(DividerBlot);
+
+    const quill = new Quill("#reportEditor", {
+      theme: "snow",
+      placeholder: "Write the full narrative of the incident…",
+      modules: {
+        toolbar: {
+          container: [
+            ["bold", "underline", "strike"],
+            [{ align: "" }, { align: "center" }, { align: "right" }, { align: "justify" }],
+            ["divider"],
+          ],
+          handlers: {
+            divider() {
+              const range = this.quill.getSelection(true);
+              this.quill.insertText(range.index, "\n", Quill.sources.USER);
+              this.quill.insertEmbed(range.index + 1, "divider", true, Quill.sources.USER);
+              this.quill.setSelection(range.index + 2, Quill.sources.SILENT);
+            },
+          },
+        },
+      },
+    });
+
+    /** @type {{ id: number, text: string }[]} */
+    let evidence = [];
+    let nextId = 1;
+    let editingId = null;
+
+    function pad(n) {
+      return String(n).padStart(2, "0");
+    }
+
+    function formatDate(d) {
+      return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+    }
+
+    function formatTime(d) {
+      let h = d.getHours();
+      const m = pad(d.getMinutes());
+      const ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12;
+      if (h === 0) h = 12;
+      return `${h}:${m} ${ampm}`;
+    }
+
+    function fillDate() {
+      dateEl.value = formatDate(new Date());
+    }
+
+    function fillTime() {
+      timeEl.value = formatTime(new Date());
+    }
+
+    function getReportPlain() {
+      const delta = quill.getContents();
+      let text = "";
+      for (const op of delta.ops || []) {
+        if (typeof op.insert === "string") {
+          text += op.insert;
+        } else if (op.insert && op.insert.divider) {
+          text += "\n\n";
+        }
+      }
+      return text.replace(/\n+$/, "").trim();
+    }
+
+    function getReportHtml() {
+      const html = quill.root.innerHTML.trim();
+      if (!html || html === "<p><br></p>") return "";
+      return html;
+    }
+
+    function clearReportEditor() {
+      quill.setText("");
+    }
+
+    function loadSettings() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { officerName: "" };
+        const data = JSON.parse(raw);
+        return {
+          officerName: typeof data.officerName === "string" ? data.officerName : "",
+        };
+      } catch {
+        return { officerName: "" };
+      }
+    }
+
+    function saveSettings(settings) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    }
+
+    function applyOfficerName() {
+      const { officerName } = loadSettings();
+      filedEl.value = officerName;
+      signedNameEl.textContent = officerName;
+      officerNameEl.value = officerName;
+    }
+
+    function showPage(name) {
+      pageReport.classList.toggle("active", name === "report");
+      pageSettings.classList.toggle("active", name === "settings");
+      if (name === "settings") {
+        applyOfficerName();
+        officerNameEl.focus();
+      }
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function renderEvidence() {
+      evidenceList.innerHTML = "";
+      for (const item of evidence) {
+        const li = document.createElement("li");
+        li.className = "evidence-item";
+        li.dataset.id = String(item.id);
+
+        if (editingId === item.id) {
+          li.innerHTML = `
+            <span class="dash">-</span>
+            <input type="text" class="edit-input" />
+            <div class="actions">
+              <button type="button" class="btn-primary btn-small save-btn">Save</button>
+              <button type="button" class="btn-ghost btn-small cancel-btn">Cancel</button>
+            </div>
+          `;
+          const input = li.querySelector(".edit-input");
+          input.value = item.text;
+          requestAnimationFrame(() => {
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+          });
+
+          const save = () => {
+            const v = input.value.trim();
+            if (!v) return;
+            item.text = v;
+            editingId = null;
+            renderEvidence();
+          };
+
+          li.querySelector(".save-btn").addEventListener("click", save);
+          li.querySelector(".cancel-btn").addEventListener("click", () => {
+            editingId = null;
+            renderEvidence();
+          });
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              save();
+            }
+            if (e.key === "Escape") {
+              editingId = null;
+              renderEvidence();
+            }
+          });
+        } else {
+          li.innerHTML = `
+            <span class="dash">-</span>
+            <span class="text"></span>
+            <div class="actions">
+              <button type="button" class="btn-ghost btn-small edit-btn">Edit</button>
+              <button type="button" class="btn-danger remove-btn">Remove</button>
+            </div>
+          `;
+          li.querySelector(".text").textContent = item.text;
+          li.querySelector(".edit-btn").addEventListener("click", () => {
+            editingId = item.id;
+            renderEvidence();
+          });
+          li.querySelector(".remove-btn").addEventListener("click", () => {
+            evidence = evidence.filter((e) => e.id !== item.id);
+            if (editingId === item.id) editingId = null;
+            renderEvidence();
+          });
+        }
+
+        evidenceList.appendChild(li);
+      }
+    }
+
+    function addEvidence() {
+      const text = evidenceInput.value.trim();
+      if (!text) {
+        evidenceInput.focus();
+        return;
+      }
+      evidence.push({ id: nextId++, text });
+      evidenceInput.value = "";
+      evidenceInput.focus();
+      renderEvidence();
+    }
+
+    function formatSuspectLine() {
+      const name = suspectNameEl.value.trim();
+      const stateId = suspectStateIdEl.value.trim();
+      if (name && stateId) return `${name} (State ID: ${stateId})`;
+      if (name) return name;
+      if (stateId) return `State ID: ${stateId}`;
+      return "";
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function buildReportPlain() {
+      const lines = ["INCIDENT REPORT", ""];
+
+      const date = dateEl.value.trim();
+      if (date) lines.push(`DATE: ${date}`, "");
+
+      const time = timeEl.value.trim();
+      if (time) lines.push(`TIME: ${time}`, "");
+
+      const location = locationEl.value.trim();
+      if (location) lines.push(`LOCATION: ${location}`, "");
+
+      const suspect = formatSuspectLine();
+      if (suspect) lines.push(`SUSPECT NAMES: ${suspect}`, "");
+
+      const plea = pleaEl.value.trim();
+      if (plea) lines.push(`PLEA: ${plea}`, "");
+
+      const vehicle = vehicleEl.value.trim();
+      if (vehicle) lines.push("Vehicle Details:", vehicle, "");
+
+      if (evidence.length > 0) {
+        lines.push(
+          "Evidence:",
+          ...evidence.map((e) => `- ${e.text}`),
+          ""
+        );
+      }
+
+      const report = getReportPlain();
+      if (report) lines.push("", "REPORT:", "", report, "");
+
+      const filed = filedEl.value.trim();
+      if (filed) lines.push("", `FILED BY : ${filed}`, "");
+
+      lines.push("", "Signed,");
+      if (filed) lines.push(filed);
+      lines.push("LSPD");
+
+      return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+    }
+
+    function buildReportHtml() {
+      const parts = [
+        `<p><strong>INCIDENT REPORT</strong></p>`,
+      ];
+
+      const date = dateEl.value.trim();
+      if (date) parts.push(`<p>DATE: ${escapeHtml(date)}</p>`);
+
+      const time = timeEl.value.trim();
+      if (time) parts.push(`<p>TIME: ${escapeHtml(time)}</p>`);
+
+      const location = locationEl.value.trim();
+      if (location) parts.push(`<p>LOCATION: ${escapeHtml(location)}</p>`);
+
+      const suspect = formatSuspectLine();
+      if (suspect) parts.push(`<p>SUSPECT NAMES: ${escapeHtml(suspect)}</p>`);
+
+      const plea = pleaEl.value.trim();
+      if (plea) parts.push(`<p>PLEA: ${escapeHtml(plea)}</p>`);
+
+      const vehicle = vehicleEl.value.trim();
+      if (vehicle) {
+        parts.push(
+          `<p>Vehicle Details:<br>${escapeHtml(vehicle).replace(/\n/g, "<br>")}</p>`
+        );
+      }
+
+      if (evidence.length > 0) {
+        const evidenceBlock = evidence
+          .map((e) => `- ${escapeHtml(e.text)}`)
+          .join("<br>");
+        parts.push(`<p>Evidence:<br>${evidenceBlock}</p>`);
+      }
+
+      const reportHtml = getReportHtml();
+      const reportPlain = getReportPlain();
+      if (reportHtml || reportPlain) {
+        const reportBody =
+          reportHtml ||
+          `<p>${escapeHtml(reportPlain).replace(/\n/g, "<br>")}</p>`;
+        parts.push(
+          `<hr style="border:none;border-top:2px solid #3a4050;margin:16px 0;">`,
+          `<p><strong>REPORT:</strong></p>`,
+          reportBody
+        );
+      }
+
+      const filed = filedEl.value.trim();
+      parts.push(
+        `<hr style="border:none;border-top:2px solid #3a4050;margin:16px 0;">`
+      );
+      if (filed) parts.push(`<p>FILED : ${escapeHtml(filed)}</p>`);
+      parts.push(`<p>Signed,</p>`);
+      if (filed) parts.push(`<p>${escapeHtml(filed)}</p>`);
+      parts.push(`<p><strong>LSPD | MRPD District</strong></p>`);
+
+      return `
+<div style="font-family:Segoe UI,system-ui,sans-serif;line-height:1.45;white-space:normal;">
+  ${parts.join("\n  ")}
+</div>`.trim();
+    }
+
+    function copyPlainFallback(plain) {
+      const ta = document.createElement("textarea");
+      ta.value = plain;
+      ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;padding:0;border:0;opacity:0;";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      const ok = document.execCommand("copy");
+      ta.remove();
+      return ok;
+    }
+
+    async function copyReport() {
+      fillDate();
+      applyOfficerName();
+      const plain = buildReportPlain();
+      const html = buildReportHtml();
+
+      // Prefer the Clipboard API only in a secure context (https/localhost).
+      // On file:// it usually fails after await, and by then the browser has
+      // already consumed the click gesture — so execCommand fallback also fails.
+      const canUseClipboardApi =
+        window.isSecureContext && navigator.clipboard;
+
+      try {
+        if (
+          canUseClipboardApi &&
+          window.ClipboardItem &&
+          typeof navigator.clipboard.write === "function"
+        ) {
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              "text/plain": new Blob([plain], { type: "text/plain" }),
+              "text/html": new Blob([html], { type: "text/html" }),
+            }),
+          ]);
+          showToast("Copied to clipboard");
+          return;
+        }
+
+        if (canUseClipboardApi && typeof navigator.clipboard.writeText === "function") {
+          await navigator.clipboard.writeText(plain);
+          showToast("Copied to clipboard");
+          return;
+        }
+      } catch {
+        // Fall through to sync fallback while we may still have user activation
+        // only if write failed synchronously; after await, use fallback anyway.
+      }
+
+      if (copyPlainFallback(plain)) {
+        showToast("Copied to clipboard");
+      } else {
+        showToast("Copy failed — select and copy manually");
+      }
+    }
+
+    function clearForm() {
+      if (!confirm("Clear the whole form?")) return;
+      locationEl.value = "";
+      suspectNameEl.value = "";
+      suspectStateIdEl.value = "";
+      pleaEl.value = "";
+      vehicleEl.value = "";
+      clearReportEditor();
+      evidenceInput.value = "";
+      evidence = [];
+      editingId = null;
+      dateEl.value = "";
+      timeEl.value = "";
+      applyOfficerName();
+      renderEvidence();
+    }
+
+    function saveOfficerSettings() {
+      const officerName = officerNameEl.value.trim();
+      saveSettings({ officerName });
+      applyOfficerName();
+      showToast("Settings saved");
+    }
+
+    suspectStateIdEl.addEventListener("input", () => {
+      suspectStateIdEl.value = suspectStateIdEl.value.replace(/\D/g, "");
+    });
+
+    document.getElementById("addEvidenceBtn").addEventListener("click", addEvidence);
+    evidenceInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addEvidence();
+      }
+    });
+    document.getElementById("copyBtn").addEventListener("click", copyReport);
+    document.getElementById("updateTimeBtn").addEventListener("click", fillTime);
+    document.getElementById("clearBtn").addEventListener("click", clearForm);
+    document.getElementById("settingsBtn").addEventListener("click", () => showPage("settings"));
+    document.getElementById("backBtn").addEventListener("click", () => showPage("report"));
+    document.getElementById("saveSettingsBtn").addEventListener("click", saveOfficerSettings);
+    officerNameEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        saveOfficerSettings();
+      }
+    });
+
+    applyOfficerName();
+    renderEvidence();
+  </script>
+</body>
+</html>
