@@ -1118,6 +1118,155 @@
       height: 56px;
     }
 
+    .style-toggle {
+      display: inline-flex;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--panel-2);
+    }
+
+    .style-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 8px 12px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .style-btn + .style-btn {
+      border-left: 1px solid var(--line-strong);
+    }
+
+    .style-btn.active {
+      background: var(--accent-soft);
+      color: var(--accent-bright);
+    }
+
+    .style-btn:hover:not(.active) {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .advanced-report {
+      display: none;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #pageReport.report-style-advanced .report-layout {
+      display: none;
+    }
+
+    #pageReport.report-style-advanced .advanced-report {
+      display: flex;
+    }
+
+    .advanced-report-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    .advanced-report-meta .hint {
+      margin: 0;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .advanced-editor-shell {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--panel);
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .advanced-editor-shell .ql-toolbar.ql-snow {
+      flex-shrink: 0;
+    }
+
+    .advanced-editor-shell .ql-container.ql-snow {
+      flex: 1;
+      min-height: 280px;
+      overflow-y: auto;
+      font-size: 0.95rem;
+    }
+
+    .advanced-editor-shell .ql-editor {
+      min-height: 100%;
+      line-height: 1.55;
+      padding: 18px 20px 28px;
+    }
+
+    .advanced-editor-shell .ql-editor h2 {
+      font-family: var(--display);
+      font-size: 1.35rem;
+      letter-spacing: 0.06em;
+      margin: 0 0 12px;
+    }
+
+    .advanced-editor-shell .ql-editor h3 {
+      font-family: var(--display);
+      font-size: 1.05rem;
+      letter-spacing: 0.05em;
+      margin: 16px 0 8px;
+    }
+
+    .report-style-options {
+      display: grid;
+      gap: 8px;
+    }
+
+    .report-style-option {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--input);
+      cursor: pointer;
+    }
+
+    .report-style-option:has(input:checked) {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .report-style-option input {
+      margin-top: 3px;
+    }
+
+    .report-style-option .option-copy strong {
+      display: block;
+      color: var(--text);
+      font-size: 0.92rem;
+    }
+
+    .report-style-option .option-copy span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
     .settings-actions {
       display: flex;
       gap: 8px;
@@ -1940,12 +2089,16 @@
 
       <div class="toolbar">
         <button type="button" class="btn-ghost" id="settingsBtn">Settings</button>
+        <div class="style-toggle" role="group" aria-label="Report style">
+          <button type="button" class="style-btn active" id="styleSimpleBtn" data-style="simple">Simple</button>
+          <button type="button" class="style-btn" id="styleAdvancedBtn" data-style="advanced">Advanced</button>
+        </div>
         <span class="spacer"></span>
         <button type="button" class="btn-ghost" id="clearBtn">Clear form</button>
         <button type="button" class="btn-primary" id="copyBtn">Copy report</button>
       </div>
 
-      <div class="report-layout">
+      <div class="report-layout" id="simpleReport">
         <div class="report-col report-col-main">
           <div class="row">
             <div class="field">
@@ -2012,6 +2165,16 @@
           <div class="suspects-list" id="suspectsList" aria-live="polite"></div>
         </div>
       </div>
+
+      <div class="advanced-report" id="advancedReport">
+        <div class="advanced-report-meta">
+          <p class="hint">One continuous report document — format headings, lists, and spacing freely.</p>
+          <button type="button" class="btn-ghost" id="loadFromSimpleBtn">Load from Simple</button>
+        </div>
+        <div class="editor-shell advanced-editor-shell">
+          <div id="advancedEditor"></div>
+        </div>
+      </div>
     </div>
 
     <!-- SETTINGS PAGE -->
@@ -2033,9 +2196,28 @@
           <label for="officerDepartment">Department</label>
           <input type="text" id="officerDepartment" placeholder="e.g. LSPD" autocomplete="off" />
         </div>
-        <div class="field" style="margin-bottom: 0;">
+        <div class="field">
           <label for="officerRank">Rank</label>
           <input type="text" id="officerRank" placeholder="e.g. Officer" autocomplete="off" />
+        </div>
+        <div class="field" style="margin-bottom: 0;">
+          <label>Report style</label>
+          <div class="report-style-options">
+            <label class="report-style-option">
+              <input type="radio" name="reportStyle" value="simple" checked />
+              <span class="option-copy">
+                <strong>Simple</strong>
+                <span>Separated fields and involved parties panel (current layout).</span>
+              </span>
+            </label>
+            <label class="report-style-option">
+              <input type="radio" name="reportStyle" value="advanced" />
+              <span class="option-copy">
+                <strong>Advanced</strong>
+                <span>One continuous report document with full formatting control.</span>
+              </span>
+            </label>
+          </div>
         </div>
         <div class="settings-actions">
           <button type="button" class="btn-primary" id="saveSettingsBtn">Save</button>
@@ -2274,12 +2456,39 @@
       },
     });
 
-    /** @type {{ id: number, text: string }[]} */
+    function dividerHandler() {
+      const range = this.quill.getSelection(true);
+      this.quill.insertText(range.index, "\n", Quill.sources.USER);
+      this.quill.insertEmbed(range.index + 1, "divider", true, Quill.sources.USER);
+      this.quill.setSelection(range.index + 2, Quill.sources.SILENT);
+    }
+
+    const advancedQuill = new Quill("#advancedEditor", {
+      theme: "snow",
+      placeholder: "Write and format the full incident report as one document…",
+      modules: {
+        toolbar: {
+          container: [
+            ["bold", "underline", "strike"],
+            [{ header: [2, 3, false] }],
+            [{ list: "ordered" }, { list: "bullet" }],
+            [{ align: "" }, { align: "center" }, { align: "right" }, { align: "justify" }],
+            ["divider"],
+          ],
+          handlers: {
+            divider: dividerHandler,
+          },
+        },
+      },
+    });
+
+    // Evidence items: { id: number, text: string }[]
     let evidence = [];
     let nextId = 1;
     let editingId = null;
     let nextSuspectId = 1;
     let activeSuspectId = null;
+    let advancedTouched = false;
 
     function pad(n) {
       return String(n).padStart(2, "0");
@@ -2330,7 +2539,16 @@
     }
 
     function emptySettings() {
-      return { officerName: "", officerDepartment: "", officerRank: "" };
+      return {
+        officerName: "",
+        officerDepartment: "",
+        officerRank: "",
+        reportStyle: "simple",
+      };
+    }
+
+    function normalizeReportStyle(value) {
+      return value === "advanced" ? "advanced" : "simple";
     }
 
     function formatDeptRank(department, rank) {
@@ -2349,6 +2567,7 @@
           officerName: typeof data.officerName === "string" ? data.officerName : "",
           officerDepartment: typeof data.officerDepartment === "string" ? data.officerDepartment : "",
           officerRank: typeof data.officerRank === "string" ? data.officerRank : "",
+          reportStyle: normalizeReportStyle(data.reportStyle),
         };
       } catch {
         return emptySettings();
@@ -2359,14 +2578,75 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
     }
 
+    function getSelectedReportStyleInput() {
+      return document.querySelector('input[name="reportStyle"]:checked');
+    }
+
+    function setReportStyleInputs(style) {
+      const value = normalizeReportStyle(style);
+      document.querySelectorAll('input[name="reportStyle"]').forEach((input) => {
+        input.checked = input.value === value;
+      });
+      document.getElementById("styleSimpleBtn").classList.toggle("active", value === "simple");
+      document.getElementById("styleAdvancedBtn").classList.toggle("active", value === "advanced");
+    }
+
+    function isAdvancedEditorEmpty() {
+      const text = advancedQuill.getText().replace(/\u00a0/g, " ").trim();
+      return !text;
+    }
+
+    function getAdvancedPlain() {
+      const delta = advancedQuill.getContents();
+      let text = "";
+      for (const op of delta.ops || []) {
+        if (typeof op.insert === "string") {
+          text += op.insert;
+        } else if (op.insert && op.insert.divider) {
+          text += "\n\n";
+        }
+      }
+      return text.replace(/\n+$/, "").trim();
+    }
+
+    function getAdvancedHtml() {
+      const html = advancedQuill.root.innerHTML.trim();
+      if (!html || html === "<p><br></p>") return "";
+      return html;
+    }
+
+    function loadAdvancedFromSimple({ force = true } = {}) {
+      if (!force && advancedTouched && !isAdvancedEditorEmpty()) return;
+      fillDate();
+      if (!timeEl.value.trim()) fillTime();
+      applyOfficerName();
+      const html = buildReportHtml();
+      const match = html.match(/<div[^>]*>([\s\S]*)<\/div>\s*$/);
+      const body = (match ? match[1] : html).trim();
+      advancedQuill.setContents([]);
+      advancedQuill.clipboard.dangerouslyPasteHTML(0, body || "<p><br></p>");
+      advancedTouched = false;
+    }
+
+    function applyReportStyle(style, { syncFromSimple = false } = {}) {
+      const value = normalizeReportStyle(style);
+      pageReport.classList.toggle("report-style-advanced", value === "advanced");
+      setReportStyleInputs(value);
+      if (value === "advanced" && (syncFromSimple || isAdvancedEditorEmpty())) {
+        loadAdvancedFromSimple({ force: syncFromSimple || isAdvancedEditorEmpty() });
+      }
+    }
+
     function applyOfficerName() {
-      const { officerName, officerDepartment, officerRank } = loadSettings();
+      const settings = loadSettings();
+      const { officerName, officerDepartment, officerRank, reportStyle } = settings;
       filedEl.value = officerName;
       signedNameEl.textContent = officerName;
       signedDeptRankEl.textContent = formatDeptRank(officerDepartment, officerRank);
       officerNameEl.value = officerName;
       officerDepartmentEl.value = officerDepartment;
       officerRankEl.value = officerRank;
+      setReportStyleInputs(reportStyle);
     }
 
     function showPage(name) {
@@ -2912,8 +3192,17 @@
     async function copyReport() {
       fillDate();
       applyOfficerName();
-      const plain = buildReportPlain();
-      const html = buildReportHtml();
+
+      const usingAdvanced = pageReport.classList.contains("report-style-advanced");
+      const plain = usingAdvanced ? getAdvancedPlain() : buildReportPlain();
+      const html = usingAdvanced
+        ? `<div style="font-family:Segoe UI,system-ui,sans-serif;line-height:1.45;white-space:normal;">${getAdvancedHtml()}</div>`
+        : buildReportHtml();
+
+      if (!plain) {
+        showToast("Nothing to copy yet");
+        return;
+      }
 
       // Prefer the Clipboard API only in a secure context (https/localhost).
       // On file:// it usually fails after await, and by then the browser has
@@ -2964,6 +3253,8 @@
       activeSuspectId = null;
       vehicleEl.value = "";
       clearReportEditor();
+      advancedQuill.setText("");
+      advancedTouched = false;
       evidenceInput.value = "";
       evidence = [];
       editingId = null;
@@ -2971,16 +3262,30 @@
       timeEl.value = "";
       applyOfficerName();
       renderEvidence();
+      if (pageReport.classList.contains("report-style-advanced")) {
+        loadAdvancedFromSimple({ force: true });
+      }
     }
 
     function saveOfficerSettings() {
-      saveSettings({
+      const selectedStyle = getSelectedReportStyleInput()?.value || "simple";
+      const settings = {
         officerName: officerNameEl.value.trim(),
         officerDepartment: officerDepartmentEl.value.trim(),
         officerRank: officerRankEl.value.trim(),
-      });
+        reportStyle: normalizeReportStyle(selectedStyle),
+      };
+      saveSettings(settings);
       applyOfficerName();
+      applyReportStyle(settings.reportStyle, { syncFromSimple: settings.reportStyle === "advanced" && isAdvancedEditorEmpty() });
       showToast("Settings saved");
+    }
+
+    function setReportStyleAndSave(style, { syncFromSimple = false } = {}) {
+      const current = loadSettings();
+      const reportStyle = normalizeReportStyle(style);
+      saveSettings({ ...current, reportStyle });
+      applyReportStyle(reportStyle, { syncFromSimple });
     }
 
     document.getElementById("addSuspectBtn").addEventListener("click", addSuspect);
@@ -2997,6 +3302,26 @@
     document.getElementById("settingsBtn").addEventListener("click", () => showPage("settings"));
     document.getElementById("backBtn").addEventListener("click", () => showPage("report"));
     document.getElementById("saveSettingsBtn").addEventListener("click", saveOfficerSettings);
+    document.getElementById("styleSimpleBtn").addEventListener("click", () => {
+      setReportStyleAndSave("simple");
+    });
+    document.getElementById("styleAdvancedBtn").addEventListener("click", () => {
+      setReportStyleAndSave("advanced", { syncFromSimple: isAdvancedEditorEmpty() });
+    });
+    document.getElementById("loadFromSimpleBtn").addEventListener("click", () => {
+      if (
+        advancedTouched &&
+        !isAdvancedEditorEmpty() &&
+        !confirm("Replace the advanced report with content from the Simple form?")
+      ) {
+        return;
+      }
+      loadAdvancedFromSimple({ force: true });
+      showToast("Loaded from Simple");
+    });
+    advancedQuill.on("text-change", (_delta, _old, source) => {
+      if (source === "user") advancedTouched = true;
+    });
     [officerNameEl, officerDepartmentEl, officerRankEl].forEach((el) => {
       el.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
@@ -3007,6 +3332,7 @@
     });
 
     applyOfficerName();
+    applyReportStyle(loadSettings().reportStyle, { syncFromSimple: false });
     renderEvidence();
   
     document.getElementById("sideReportLink").addEventListener("click", (e) => {
