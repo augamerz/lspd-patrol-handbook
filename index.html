@@ -232,7 +232,7 @@
         linear-gradient(90deg, rgba(42, 53, 72, 0.18) 1px, transparent 1px);
     }
 
-    body.theme-swat .app-tab.active {
+    body.theme-swat .handbook-btn.active {
       color: #ffd5ce;
     }
 
@@ -445,35 +445,95 @@
     .no-results.show { display: block; }
 
     /* App tabs */
-    .app-tabs {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr;
-      gap: 5px;
+    .app-switcher {
       margin-bottom: 16px;
     }
 
-    .app-tab {
-      font: inherit;
+    .app-switcher > .nav-title {
+      margin-bottom: 8px;
+    }
+
+    .handbook-switch {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .handbook-btn {
+      appearance: none;
+      width: 100%;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      text-align: left;
       cursor: pointer;
-      border: 1px solid var(--line);
+      border: 1px solid transparent;
       border-radius: var(--radius);
-      padding: 8px 4px;
+      padding: 10px 12px;
       background: transparent;
       color: var(--muted);
-      font-family: var(--display);
-      font-weight: 700;
-      font-size: 0.78rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      font: inherit;
       transition: background var(--ease), color var(--ease), border-color var(--ease);
     }
 
-    .app-tab:hover { color: var(--text); background: var(--panel-2); }
+    .handbook-btn:hover {
+      color: var(--text);
+      background: var(--panel-2);
+    }
 
-    .app-tab.active {
+    .handbook-btn.active {
       background: var(--accent-soft);
       border-color: var(--accent);
-      color: #cfe6ff;
+      color: var(--text);
+    }
+
+    .handbook-btn-label {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .handbook-btn-sub {
+      font-size: 0.75rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .handbook-btn.active .handbook-btn-sub {
+      color: var(--accent-bright);
+    }
+
+    .tool-btn {
+      appearance: none;
+      width: 100%;
+      margin-top: 10px;
+      cursor: pointer;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      padding: 11px 12px;
+      background: var(--panel-2);
+      color: var(--text);
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 0.88rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-align: left;
+      transition: background var(--ease), border-color var(--ease), color var(--ease);
+    }
+
+    .tool-btn:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .tool-btn.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent-bright);
     }
 
     .sidebar-panel { display: none; }
@@ -1460,14 +1520,28 @@
       <div class="brand">
         <div class="brand-mark" id="brandMark">Los Santos Police</div>
         <h1>Patrol Toolkit</h1>
-        <p id="brandSub">LSPD · Highway · SWAT · Incident Report</p>
+        <p id="brandSub">Handbooks &amp; incident tools</p>
       </div>
 
-      <div class="app-tabs">
-        <button type="button" class="app-tab active" data-view="lspd" id="tabLspd">LSPD</button>
-        <button type="button" class="app-tab" data-view="highway" id="tabHighway">Highway</button>
-        <button type="button" class="app-tab" data-view="swat" id="tabSwat">SWAT</button>
-        <button type="button" class="app-tab" data-view="report" id="tabReport">Report</button>
+      <div class="app-switcher">
+        <p class="nav-title">Handbooks</p>
+        <div class="handbook-switch" role="tablist" aria-label="Handbooks">
+          <button type="button" class="handbook-btn active" data-view="lspd" id="tabLspd" role="tab" aria-selected="true">
+            <span class="handbook-btn-label">LSPD</span>
+            <span class="handbook-btn-sub">Patrol</span>
+          </button>
+          <button type="button" class="handbook-btn" data-view="highway" id="tabHighway" role="tab" aria-selected="false">
+            <span class="handbook-btn-label">Highway</span>
+            <span class="handbook-btn-sub">S.A.H.P</span>
+          </button>
+          <button type="button" class="handbook-btn" data-view="swat" id="tabSwat" role="tab" aria-selected="false">
+            <span class="handbook-btn-label">SWAT</span>
+            <span class="handbook-btn-sub">Tactical</span>
+          </button>
+        </div>
+        <button type="button" class="tool-btn" data-view="report" id="tabReport">
+          Incident Report
+        </button>
       </div>
 
       <div class="sidebar-panel active" id="sidebarLspd">
@@ -2622,6 +2696,10 @@
       tabHighway.classList.toggle("active", isHighway);
       tabSwat.classList.toggle("active", isSwat);
       tabReport.classList.toggle("active", isReport);
+
+      tabLspd.setAttribute("aria-selected", String(isLspd));
+      tabHighway.setAttribute("aria-selected", String(isHighway));
+      tabSwat.setAttribute("aria-selected", String(isSwat));
 
       viewLspd.classList.toggle("active", isLspd);
       viewHighway.classList.toggle("active", isHighway);
