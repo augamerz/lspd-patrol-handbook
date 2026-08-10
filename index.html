@@ -1210,8 +1210,16 @@
 
     .advanced-editor-shell .ql-editor {
       min-height: 100%;
-      line-height: 1.55;
+      line-height: 1.45;
       padding: 18px 20px 28px;
+    }
+
+    .advanced-editor-shell .ql-editor p {
+      margin: 0;
+    }
+
+    .advanced-editor-shell .ql-editor p + p {
+      margin-top: 0.9em;
     }
 
     .advanced-editor-shell .ql-editor h2 {
@@ -1226,53 +1234,6 @@
       font-size: 1.05rem;
       letter-spacing: 0.05em;
       margin: 16px 0 8px;
-    }
-
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight {
-      width: 88px;
-    }
-
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label::before {
-      content: "Spacing";
-    }
-
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="1.0"]::before,
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="1.0"]::before {
-      content: "1.0";
-    }
-
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="1.15"]::before,
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="1.15"]::before {
-      content: "1.15";
-    }
-
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="1.5"]::before,
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="1.5"]::before {
-      content: "1.5";
-    }
-
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="1.75"]::before,
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="1.75"]::before {
-      content: "1.75";
-    }
-
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="2.0"]::before,
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="2.0"]::before {
-      content: "2.0";
-    }
-
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="2.5"]::before,
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="2.5"]::before {
-      content: "2.5";
-    }
-
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="3.0"]::before,
-    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="3.0"]::before {
-      content: "3.0";
-    }
-
-    .advanced-editor-shell .ql-editor [style*="line-height"] {
-      display: block;
     }
 
     .report-style-options {
@@ -1373,6 +1334,15 @@
     .editor-shell .ql-editor {
       min-height: 180px;
       padding: 12px 14px;
+      line-height: 1.45;
+    }
+
+    .editor-shell .ql-editor p {
+      margin: 0;
+    }
+
+    .editor-shell .ql-editor p + p {
+      margin-top: 0.9em;
     }
 
     .editor-shell .ql-editor.ql-blank::before {
@@ -2475,36 +2445,105 @@
     const pageSettings = document.getElementById("pageSettings");
 
     const BlockEmbed = Quill.import("blots/block/embed");
-    const Parchment = Quill.import("parchment");
-    const StyleAttributor = Parchment.StyleAttributor || Parchment.Attributor.Style;
-    const Scope = Parchment.Scope;
+    const Embed = Quill.import("blots/embed");
 
     class DividerBlot extends BlockEmbed {}
     DividerBlot.blotName = "divider";
     DividerBlot.tagName = "hr";
     Quill.register(DividerBlot);
 
-    const LINE_HEIGHTS = ["1.0", "1.15", "1.5", "1.75", "2.0", "2.5", "3.0"];
-
-    class LineHeightStyle extends StyleAttributor {
-      value(node) {
-        const raw = super.value(node);
-        if (!raw) return "";
-        const num = Number.parseFloat(raw);
-        if (Number.isNaN(num)) return "";
-        const two = num.toFixed(2);
-        const one = num.toFixed(1);
-        if (this.whitelist.includes(two)) return two;
-        if (this.whitelist.includes(one)) return one;
-        return this.canAdd(node, one) ? one : "";
-      }
+    // Soft line break (<br>) — Enter inserts this; a second Enter makes a paragraph.
+    let SoftBreak;
+    try {
+      SoftBreak = Quill.import("blots/break");
+    } catch {
+      SoftBreak = class SoftBreakBlot extends Embed {
+        static create() {
+          return super.create();
+        }
+        static value() {
+          return true;
+        }
+      };
+      SoftBreak.blotName = "break";
+      SoftBreak.tagName = "BR";
+      SoftBreak.className = "ql-softbreak";
+      Quill.register(SoftBreak);
     }
 
-    const lineHeightStyle = new LineHeightStyle("lineheight", "line-height", {
-      scope: Scope.BLOCK,
-      whitelist: LINE_HEIGHTS,
-    });
-    Quill.register(lineHeightStyle, true);
+    function isBreakBlot(blot) {
+      return !!(blot && blot.statics && blot.statics.blotName === "break");
+    }
+
+    function softEnterKeyboard() {
+      return {
+        bindings: {
+          enter: {
+            key: "Enter",
+            shiftKey: false,
+            handler(range, context) {
+              const editor = this.quill;
+
+              // Keep normal list behavior (new list item).
+              if (context.format && context.format.list) return true;
+
+              if (range.length > 0) {
+                editor.deleteText(range.index, range.length, Quill.sources.USER);
+              }
+
+              let index = editor.getSelection(true)?.index ?? range.index;
+
+              // Empty block or caret right after a soft break → paragraph spacer.
+              if (context.empty) return true;
+
+              if (index > 0) {
+                const [prevLeaf] = editor.getLeaf(index - 1);
+                if (isBreakBlot(prevLeaf)) {
+                  editor.deleteText(index - 1, 1, Quill.sources.USER);
+                  index -= 1;
+                  editor.insertText(index, "\n", Quill.sources.USER);
+                  editor.setSelection(index + 1, Quill.sources.SILENT);
+                  return false;
+                }
+              }
+
+              // Single Enter → soft line break (like Shift+Enter).
+              editor.insertEmbed(index, "break", true, Quill.sources.USER);
+              editor.setSelection(index + 1, Quill.sources.SILENT);
+              return false;
+            },
+          },
+          "shift enter": {
+            key: "Enter",
+            shiftKey: true,
+            handler(range) {
+              const editor = this.quill;
+              if (range.length > 0) {
+                editor.deleteText(range.index, range.length, Quill.sources.USER);
+              }
+              const index = editor.getSelection(true)?.index ?? range.index;
+              editor.insertEmbed(index, "break", true, Quill.sources.USER);
+              editor.setSelection(index + 1, Quill.sources.SILENT);
+              return false;
+            },
+          },
+        },
+      };
+    }
+
+    function deltaToPlain(delta) {
+      let text = "";
+      for (const op of delta.ops || []) {
+        if (typeof op.insert === "string") {
+          text += op.insert;
+        } else if (op.insert && op.insert.break) {
+          text += "\n";
+        } else if (op.insert && op.insert.divider) {
+          text += "\n\n";
+        }
+      }
+      return text.replace(/\n+$/, "").trim();
+    }
 
     const quill = new Quill("#reportEditor", {
       theme: "snow",
@@ -2525,6 +2564,7 @@
             },
           },
         },
+        keyboard: softEnterKeyboard(),
       },
     });
 
@@ -2545,13 +2585,13 @@
             [{ header: [2, 3, false] }],
             [{ list: "ordered" }, { list: "bullet" }],
             [{ align: "" }, { align: "center" }, { align: "right" }, { align: "justify" }],
-            [{ lineheight: LINE_HEIGHTS }],
             ["divider"],
           ],
           handlers: {
             divider: dividerHandler,
           },
         },
+        keyboard: softEnterKeyboard(),
       },
     });
 
@@ -2589,16 +2629,7 @@
     }
 
     function getReportPlain() {
-      const delta = quill.getContents();
-      let text = "";
-      for (const op of delta.ops || []) {
-        if (typeof op.insert === "string") {
-          text += op.insert;
-        } else if (op.insert && op.insert.divider) {
-          text += "\n\n";
-        }
-      }
-      return text.replace(/\n+$/, "").trim();
+      return deltaToPlain(quill.getContents());
     }
 
     function getReportHtml() {
@@ -2670,16 +2701,7 @@
     }
 
     function getAdvancedPlain() {
-      const delta = advancedQuill.getContents();
-      let text = "";
-      for (const op of delta.ops || []) {
-        if (typeof op.insert === "string") {
-          text += op.insert;
-        } else if (op.insert && op.insert.divider) {
-          text += "\n\n";
-        }
-      }
-      return text.replace(/\n+$/, "").trim();
+      return deltaToPlain(advancedQuill.getContents());
     }
 
     function getAdvancedHtml() {
@@ -3001,44 +3023,42 @@
     }
 
     function formatSuspectHtml(s) {
-      const parts = [`<p><strong>Involved Party:</strong></p>`];
-      const identity = [];
+      const lines = ["<strong>Involved Party:</strong>"];
 
-      if (s.name) identity.push(`Name: ${escapeHtml(s.name)}`);
-      if (s.involvement) identity.push(`Involvement: ${escapeHtml(s.involvement)}`);
-      if (identity.length) parts.push(`<p>${identity.join("<br>")}</p>`);
+      if (s.name) lines.push(`Name: ${escapeHtml(s.name)}`);
+      if (s.involvement) lines.push(`Involvement: ${escapeHtml(s.involvement)}`);
 
       if (s.charges.length) {
-        const chargesHtml = s.charges
-          .map((c) => `- ${escapeHtml(c)}`)
-          .join("<br>");
-        parts.push(`<p>Charges:<br>${chargesHtml}</p>`);
+        lines.push("Charges:");
+        for (const charge of s.charges) lines.push(`- ${escapeHtml(charge)}`);
       }
 
       if (s.details) {
-        parts.push(
-          `<p><strong>Relevant Details:</strong><br>${escapeHtml(s.details).replace(/\n/g, "<br>")}</p>`
+        lines.push(
+          `<strong>Relevant Details:</strong>`,
+          escapeHtml(s.details).replace(/\n/g, "<br>")
         );
       }
 
       if (s.processing) {
-        parts.push(
-          `<p><strong>Processing Procedure:</strong><br>${escapeHtml(s.processing).replace(/\n/g, "<br>")}</p>`
+        lines.push(
+          `<strong>Processing Procedure:</strong>`,
+          escapeHtml(s.processing).replace(/\n/g, "<br>")
         );
       }
 
       if (s.evidence.length) {
-        const evidenceHtml = s.evidence
-          .map((e) => `- ${escapeHtml(e)}`)
-          .join("<br>");
-        parts.push(`<p>Evidence:<br>${evidenceHtml}</p>`);
+        lines.push("Evidence:");
+        for (const item of s.evidence) lines.push(`- ${escapeHtml(item)}`);
       }
 
-      if (s.action) {
-        parts.push(`<p><strong>Action Taken:</strong> ${escapeHtml(s.action)}</p>`);
-      }
+      if (s.action) lines.push(`<strong>Action Taken:</strong> ${escapeHtml(s.action)}`);
 
-      return parts.join("\n");
+      return `<p>${lines.join("<br>")}</p>`;
+    }
+
+    function joinLinesHtml(lines) {
+      return lines.filter(Boolean).join("<br>");
     }
 
     function renderEvidence() {
@@ -3134,14 +3154,14 @@
     function buildReportPlain() {
       const lines = ["INCIDENT REPORT", ""];
 
+      const meta = [];
       const date = dateEl.value.trim();
-      if (date) lines.push(`DATE: ${date}`, "");
-
       const time = timeEl.value.trim();
-      if (time) lines.push(`TIME: ${time}`, "");
-
       const location = locationEl.value.trim();
-      if (location) lines.push(`LOCATION: ${location}`, "");
+      if (date) meta.push(`DATE: ${date}`);
+      if (time) meta.push(`TIME: ${time}`);
+      if (location) meta.push(`LOCATION: ${location}`);
+      if (meta.length) lines.push(...meta, "");
 
       const suspects = getSuspectsData().filter(hasSuspectContent);
       if (suspects.length > 0) {
@@ -3163,15 +3183,14 @@
       }
 
       const report = getReportPlain();
-      if (report) lines.push("", "REPORT:", "", report, "");
+      if (report) lines.push("REPORT:", report, "");
 
       const filed = filedEl.value.trim();
-      if (filed) lines.push("", `FILED BY : ${filed}`, "");
-
       const { officerDepartment, officerRank } = loadSettings();
       const deptRank = formatDeptRank(officerDepartment, officerRank);
 
-      lines.push("", "Signed,");
+      if (filed) lines.push(`FILED BY : ${filed}`, "");
+      lines.push("Signed,");
       if (filed) lines.push(filed);
       if (deptRank) lines.push(deptRank);
 
@@ -3183,14 +3202,14 @@
         `<p><strong>INCIDENT REPORT</strong></p>`,
       ];
 
+      const meta = [];
       const date = dateEl.value.trim();
-      if (date) parts.push(`<p>DATE: ${escapeHtml(date)}</p>`);
-
       const time = timeEl.value.trim();
-      if (time) parts.push(`<p>TIME: ${escapeHtml(time)}</p>`);
-
       const location = locationEl.value.trim();
-      if (location) parts.push(`<p>LOCATION: ${escapeHtml(location)}</p>`);
+      if (date) meta.push(`DATE: ${escapeHtml(date)}`);
+      if (time) meta.push(`TIME: ${escapeHtml(time)}`);
+      if (location) meta.push(`LOCATION: ${escapeHtml(location)}`);
+      if (meta.length) parts.push(`<p>${joinLinesHtml(meta)}</p>`);
 
       const suspects = getSuspectsData().filter(hasSuspectContent);
       if (suspects.length > 0) {
@@ -3225,7 +3244,6 @@
           reportHtml ||
           `<p>${escapeHtml(reportPlain).replace(/\n/g, "<br>")}</p>`;
         parts.push(
-          `<hr style="border:none;border-top:2px solid #3a4050;margin:16px 0;">`,
           `<p><strong>REPORT:</strong></p>`,
           reportBody
         );
@@ -3234,13 +3252,11 @@
       const filed = filedEl.value.trim();
       const { officerDepartment, officerRank } = loadSettings();
       const deptRank = formatDeptRank(officerDepartment, officerRank);
-      parts.push(
-        `<hr style="border:none;border-top:2px solid #3a4050;margin:16px 0;">`
-      );
+      const signoff = ["Signed,"];
+      if (filed) signoff.push(escapeHtml(filed));
+      if (deptRank) signoff.push(`<strong>${escapeHtml(deptRank)}</strong>`);
       if (filed) parts.push(`<p>FILED : ${escapeHtml(filed)}</p>`);
-      parts.push(`<p>Signed,</p>`);
-      if (filed) parts.push(`<p>${escapeHtml(filed)}</p>`);
-      if (deptRank) parts.push(`<p><strong>${escapeHtml(deptRank)}</strong></p>`);
+      parts.push(`<p>${signoff.join("<br>")}</p>`);
 
       return `
 <div style="font-family:Segoe UI,system-ui,sans-serif;line-height:1.45;white-space:normal;">
