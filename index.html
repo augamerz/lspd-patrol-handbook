@@ -2446,6 +2446,7 @@
 
     const BlockEmbed = Quill.import("blots/block/embed");
     const Embed = Quill.import("blots/embed");
+    const Delta = Quill.import("delta");
 
     class DividerBlot extends BlockEmbed {}
     DividerBlot.blotName = "divider";
@@ -2453,26 +2454,22 @@
     Quill.register(DividerBlot);
 
     // Soft line break (<br>) — Enter inserts this; a second Enter makes a paragraph.
-    let SoftBreak;
-    try {
-      SoftBreak = Quill.import("blots/break");
-    } catch {
-      SoftBreak = class SoftBreakBlot extends Embed {
-        static create() {
-          return super.create();
-        }
-        static value() {
-          return true;
-        }
-      };
-      SoftBreak.blotName = "break";
-      SoftBreak.tagName = "BR";
-      SoftBreak.className = "ql-softbreak";
-      Quill.register(SoftBreak);
+    class SoftBreakBlot extends Embed {
+      static create() {
+        return super.create();
+      }
+      static value() {
+        return true;
+      }
     }
+    SoftBreakBlot.blotName = "softbreak";
+    SoftBreakBlot.tagName = "BR";
+    SoftBreakBlot.className = "ql-softbreak";
+    Quill.register(SoftBreakBlot);
 
-    function isBreakBlot(blot) {
-      return !!(blot && blot.statics && blot.statics.blotName === "break");
+    function isSoftBreakBlot(blot) {
+      const name = blot && blot.statics && blot.statics.blotName;
+      return name === "softbreak" || name === "break";
     }
 
     function softEnterKeyboard() {
@@ -2493,12 +2490,13 @@
 
               let index = editor.getSelection(true)?.index ?? range.index;
 
-              // Empty block or caret right after a soft break → paragraph spacer.
+              // Empty block → paragraph spacer.
               if (context.empty) return true;
 
+              // Caret right after a soft break → turn into paragraph spacer.
               if (index > 0) {
                 const [prevLeaf] = editor.getLeaf(index - 1);
-                if (isBreakBlot(prevLeaf)) {
+                if (isSoftBreakBlot(prevLeaf)) {
                   editor.deleteText(index - 1, 1, Quill.sources.USER);
                   index -= 1;
                   editor.insertText(index, "\n", Quill.sources.USER);
@@ -2508,7 +2506,7 @@
               }
 
               // Single Enter → soft line break (like Shift+Enter).
-              editor.insertEmbed(index, "break", true, Quill.sources.USER);
+              editor.insertEmbed(index, "softbreak", true, Quill.sources.USER);
               editor.setSelection(index + 1, Quill.sources.SILENT);
               return false;
             },
@@ -2522,7 +2520,7 @@
                 editor.deleteText(range.index, range.length, Quill.sources.USER);
               }
               const index = editor.getSelection(true)?.index ?? range.index;
-              editor.insertEmbed(index, "break", true, Quill.sources.USER);
+              editor.insertEmbed(index, "softbreak", true, Quill.sources.USER);
               editor.setSelection(index + 1, Quill.sources.SILENT);
               return false;
             },
@@ -2531,12 +2529,16 @@
       };
     }
 
+    function wireSoftBreakClipboard(editor) {
+      editor.clipboard.addMatcher("BR", () => new Delta().insert({ softbreak: true }));
+    }
+
     function deltaToPlain(delta) {
       let text = "";
       for (const op of delta.ops || []) {
         if (typeof op.insert === "string") {
           text += op.insert;
-        } else if (op.insert && op.insert.break) {
+        } else if (op.insert && (op.insert.softbreak || op.insert.break)) {
           text += "\n";
         } else if (op.insert && op.insert.divider) {
           text += "\n\n";
@@ -2567,6 +2569,7 @@
         keyboard: softEnterKeyboard(),
       },
     });
+    wireSoftBreakClipboard(quill);
 
     function dividerHandler() {
       const range = this.quill.getSelection(true);
@@ -2594,6 +2597,7 @@
         keyboard: softEnterKeyboard(),
       },
     });
+    wireSoftBreakClipboard(advancedQuill);
 
     // Evidence items: { id: number, text: string }[]
     let evidence = [];
