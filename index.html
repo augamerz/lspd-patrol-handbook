@@ -1228,6 +1228,53 @@
       margin: 16px 0 8px;
     }
 
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight {
+      width: 88px;
+    }
+
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label::before {
+      content: "Spacing";
+    }
+
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="1.0"]::before,
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="1.0"]::before {
+      content: "1.0";
+    }
+
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="1.15"]::before,
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="1.15"]::before {
+      content: "1.15";
+    }
+
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="1.5"]::before,
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="1.5"]::before {
+      content: "1.5";
+    }
+
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="1.75"]::before,
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="1.75"]::before {
+      content: "1.75";
+    }
+
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="2.0"]::before,
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="2.0"]::before {
+      content: "2.0";
+    }
+
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="2.5"]::before,
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="2.5"]::before {
+      content: "2.5";
+    }
+
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-label[data-value="3.0"]::before,
+    .advanced-editor-shell .ql-snow .ql-picker.ql-lineheight .ql-picker-item[data-value="3.0"]::before {
+      content: "3.0";
+    }
+
+    .advanced-editor-shell .ql-editor [style*="line-height"] {
+      display: block;
+    }
+
     .report-style-options {
       display: grid;
       gap: 8px;
@@ -2428,11 +2475,36 @@
     const pageSettings = document.getElementById("pageSettings");
 
     const BlockEmbed = Quill.import("blots/block/embed");
+    const Parchment = Quill.import("parchment");
+    const StyleAttributor = Parchment.StyleAttributor || Parchment.Attributor.Style;
+    const Scope = Parchment.Scope;
 
     class DividerBlot extends BlockEmbed {}
     DividerBlot.blotName = "divider";
     DividerBlot.tagName = "hr";
     Quill.register(DividerBlot);
+
+    const LINE_HEIGHTS = ["1.0", "1.15", "1.5", "1.75", "2.0", "2.5", "3.0"];
+
+    class LineHeightStyle extends StyleAttributor {
+      value(node) {
+        const raw = super.value(node);
+        if (!raw) return "";
+        const num = Number.parseFloat(raw);
+        if (Number.isNaN(num)) return "";
+        const two = num.toFixed(2);
+        const one = num.toFixed(1);
+        if (this.whitelist.includes(two)) return two;
+        if (this.whitelist.includes(one)) return one;
+        return this.canAdd(node, one) ? one : "";
+      }
+    }
+
+    const lineHeightStyle = new LineHeightStyle("lineheight", "line-height", {
+      scope: Scope.BLOCK,
+      whitelist: LINE_HEIGHTS,
+    });
+    Quill.register(lineHeightStyle, true);
 
     const quill = new Quill("#reportEditor", {
       theme: "snow",
@@ -2473,6 +2545,7 @@
             [{ header: [2, 3, false] }],
             [{ list: "ordered" }, { list: "bullet" }],
             [{ align: "" }, { align: "center" }, { align: "right" }, { align: "justify" }],
+            [{ lineheight: LINE_HEIGHTS }],
             ["divider"],
           ],
           handlers: {
