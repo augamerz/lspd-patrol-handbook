@@ -425,6 +425,34 @@
       letter-spacing: 0.02em;
     }
 
+    .handbook-grid section.span-all {
+      grid-column: 1 / -1;
+    }
+
+    .loadout-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+      gap: 12px;
+      margin: 4px 0 14px;
+    }
+
+    .loadout-card {
+      margin: 0;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #0d121a;
+      overflow: hidden;
+      aspect-ratio: 1 / 1;
+    }
+
+    .loadout-card img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     mark {
       background: var(--mark);
       color: var(--mark-text);
@@ -2372,16 +2400,30 @@
         </table>
       </section>
 
-      <section id="swat-loadout" data-search="loadout pistol shotgun shield nightstick rifle beanbag smg weapon accessories">
+      <section id="swat-loadout" class="span-all" data-search="loadout pistol shotgun shield nightstick rifle beanbag smg weapon accessories pd x45 police">
         <h3>SWAT Loadout</h3>
-        <div class="grid-2">
-          <div class="code-card"><strong>Pistol</strong>Sidearm</div>
-          <div class="code-card"><strong>Shotgun</strong>Primary option</div>
-          <div class="code-card"><strong>Rifle</strong>Primary option</div>
-          <div class="code-card"><strong>SMG</strong>Primary option</div>
-          <div class="code-card"><strong>Beanbag</strong>Less-lethal</div>
-          <div class="code-card"><strong>Shield</strong>Breach / operation</div>
-          <div class="code-card"><strong>Nightstick</strong>Impact</div>
+        <div class="loadout-gallery">
+          <figure class="loadout-card">
+            <img src="assets/swat-loadout/x45-pistol.png" alt="x45 Pistol — 420 g — $20,000" loading="lazy" />
+          </figure>
+          <figure class="loadout-card">
+            <img src="assets/swat-loadout/pd-smg.png" alt="PD SMG — 3.50 kg — $250,000" loading="lazy" />
+          </figure>
+          <figure class="loadout-card">
+            <img src="assets/swat-loadout/pd-shotgun.png" alt="PD Shotgun — 1.20 kg — $500,000" loading="lazy" />
+          </figure>
+          <figure class="loadout-card">
+            <img src="assets/swat-loadout/pd-rifle.png" alt="PD Rifle — 3.50 kg — $500,000" loading="lazy" />
+          </figure>
+          <figure class="loadout-card">
+            <img src="assets/swat-loadout/beanbag-shotgun.png" alt="Beanbag Shotgun — 1.40 kg — $250,000" loading="lazy" />
+          </figure>
+          <figure class="loadout-card">
+            <img src="assets/swat-loadout/police-shield.png" alt="Police Shield — 800 g — $500" loading="lazy" />
+          </figure>
+          <figure class="loadout-card">
+            <img src="assets/swat-loadout/nightstick.png" alt="Nightstick — 210 g — $100" loading="lazy" />
+          </figure>
         </div>
         <p>You may accessorise your weapons as you wish.</p>
       </section>
