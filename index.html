@@ -1936,8 +1936,8 @@
 
           <div class="signed">
             Signed,<br />
-            <span id="signedName"></span>
-            <strong>LSPD</strong>
+            <span id="signedName"></span><br />
+            <strong id="signedDeptRank"></strong>
           </div>
         </div>
 
@@ -1962,10 +1962,18 @@
       </div>
 
       <div class="settings-card">
-        <div class="field" style="margin-bottom: 0;">
+        <div class="field">
           <label for="officerName">Officer name (Filed)</label>
           <input type="text" id="officerName" placeholder="e.g. Jim Manning" autocomplete="off" />
           <p class="hint">This fills the FILED line on every report.</p>
+        </div>
+        <div class="field">
+          <label for="officerDepartment">Department</label>
+          <input type="text" id="officerDepartment" placeholder="e.g. LSPD" autocomplete="off" />
+        </div>
+        <div class="field" style="margin-bottom: 0;">
+          <label for="officerRank">Rank</label>
+          <input type="text" id="officerRank" placeholder="e.g. Officer" autocomplete="off" />
         </div>
         <div class="settings-actions">
           <button type="button" class="btn-primary" id="saveSettingsBtn">Save</button>
@@ -2165,7 +2173,10 @@
     const vehicleEl = document.getElementById("vehicle");
     const filedEl = document.getElementById("filed");
     const signedNameEl = document.getElementById("signedName");
+    const signedDeptRankEl = document.getElementById("signedDeptRank");
     const officerNameEl = document.getElementById("officerName");
+    const officerDepartmentEl = document.getElementById("officerDepartment");
+    const officerRankEl = document.getElementById("officerRank");
     const evidenceInput = document.getElementById("evidenceInput");
     const evidenceList = document.getElementById("evidenceList");
     const toast = document.getElementById("toast");
@@ -2256,16 +2267,29 @@
       quill.setText("");
     }
 
+    function emptySettings() {
+      return { officerName: "", officerDepartment: "", officerRank: "" };
+    }
+
+    function formatDeptRank(department, rank) {
+      const dept = (department || "").trim();
+      const rnk = (rank || "").trim();
+      if (dept && rnk) return `${dept} | ${rnk}`;
+      return dept || rnk;
+    }
+
     function loadSettings() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return { officerName: "" };
+        if (!raw) return emptySettings();
         const data = JSON.parse(raw);
         return {
           officerName: typeof data.officerName === "string" ? data.officerName : "",
+          officerDepartment: typeof data.officerDepartment === "string" ? data.officerDepartment : "",
+          officerRank: typeof data.officerRank === "string" ? data.officerRank : "",
         };
       } catch {
-        return { officerName: "" };
+        return emptySettings();
       }
     }
 
@@ -2274,10 +2298,13 @@
     }
 
     function applyOfficerName() {
-      const { officerName } = loadSettings();
+      const { officerName, officerDepartment, officerRank } = loadSettings();
       filedEl.value = officerName;
       signedNameEl.textContent = officerName;
+      signedDeptRankEl.textContent = formatDeptRank(officerDepartment, officerRank);
       officerNameEl.value = officerName;
+      officerDepartmentEl.value = officerDepartment;
+      officerRankEl.value = officerRank;
     }
 
     function showPage(name) {
@@ -2724,9 +2751,12 @@
       const filed = filedEl.value.trim();
       if (filed) lines.push("", `FILED BY : ${filed}`, "");
 
+      const { officerDepartment, officerRank } = loadSettings();
+      const deptRank = formatDeptRank(officerDepartment, officerRank);
+
       lines.push("", "Signed,");
       if (filed) lines.push(filed);
-      lines.push("LSPD");
+      if (deptRank) lines.push(deptRank);
 
       return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
     }
@@ -2785,13 +2815,15 @@
       }
 
       const filed = filedEl.value.trim();
+      const { officerDepartment, officerRank } = loadSettings();
+      const deptRank = formatDeptRank(officerDepartment, officerRank);
       parts.push(
         `<hr style="border:none;border-top:2px solid #3a4050;margin:16px 0;">`
       );
       if (filed) parts.push(`<p>FILED : ${escapeHtml(filed)}</p>`);
       parts.push(`<p>Signed,</p>`);
       if (filed) parts.push(`<p>${escapeHtml(filed)}</p>`);
-      parts.push(`<p><strong>LSPD | MRPD District</strong></p>`);
+      if (deptRank) parts.push(`<p><strong>${escapeHtml(deptRank)}</strong></p>`);
 
       return `
 <div style="font-family:Segoe UI,system-ui,sans-serif;line-height:1.45;white-space:normal;">
@@ -2878,8 +2910,11 @@
     }
 
     function saveOfficerSettings() {
-      const officerName = officerNameEl.value.trim();
-      saveSettings({ officerName });
+      saveSettings({
+        officerName: officerNameEl.value.trim(),
+        officerDepartment: officerDepartmentEl.value.trim(),
+        officerRank: officerRankEl.value.trim(),
+      });
       applyOfficerName();
       showToast("Settings saved");
     }
@@ -2898,11 +2933,13 @@
     document.getElementById("settingsBtn").addEventListener("click", () => showPage("settings"));
     document.getElementById("backBtn").addEventListener("click", () => showPage("report"));
     document.getElementById("saveSettingsBtn").addEventListener("click", saveOfficerSettings);
-    officerNameEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        saveOfficerSettings();
-      }
+    [officerNameEl, officerDepartmentEl, officerRankEl].forEach((el) => {
+      el.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          saveOfficerSettings();
+        }
+      });
     });
 
     applyOfficerName();
