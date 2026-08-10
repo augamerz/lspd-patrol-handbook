@@ -447,16 +447,67 @@
     /* App tabs */
     .app-switcher {
       margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
-    .app-switcher > .nav-title {
-      margin-bottom: 8px;
+    .nav-menu-btn {
+      appearance: none;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      text-align: left;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 11px 12px;
+      background: var(--panel-2);
+      color: var(--text);
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 0.88rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: background var(--ease), border-color var(--ease), color var(--ease);
+    }
+
+    .nav-menu-btn:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .nav-menu-btn.active,
+    .nav-menu-btn[aria-expanded="true"] {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent-bright);
+    }
+
+    .nav-menu-chevron {
+      font-size: 0.75rem;
+      color: var(--muted);
+      transition: transform var(--ease);
+    }
+
+    .nav-menu-btn[aria-expanded="true"] .nav-menu-chevron {
+      transform: rotate(180deg);
+      color: var(--accent-bright);
     }
 
     .handbook-switch {
-      display: flex;
+      display: none;
       flex-direction: column;
       gap: 4px;
+      padding: 4px 0 2px 10px;
+      border-left: 2px solid var(--line);
+      margin: 0 0 2px 8px;
+    }
+
+    .handbook-switch.open {
+      display: flex;
     }
 
     .handbook-btn {
@@ -470,7 +521,7 @@
       cursor: pointer;
       border: 1px solid transparent;
       border-radius: var(--radius);
-      padding: 10px 12px;
+      padding: 9px 10px;
       background: transparent;
       color: var(--muted);
       font: inherit;
@@ -491,13 +542,13 @@
     .handbook-btn-label {
       font-family: var(--display);
       font-weight: 700;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     .handbook-btn-sub {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--muted);
       white-space: nowrap;
     }
@@ -509,9 +560,8 @@
     .tool-btn {
       appearance: none;
       width: 100%;
-      margin-top: 10px;
       cursor: pointer;
-      border: 1px solid var(--line-strong);
+      border: 1px solid var(--line);
       border-radius: var(--radius);
       padding: 11px 12px;
       background: var(--panel-2);
@@ -1524,8 +1574,11 @@
       </div>
 
       <div class="app-switcher">
-        <p class="nav-title">Handbooks</p>
-        <div class="handbook-switch" role="tablist" aria-label="Handbooks">
+        <button type="button" class="nav-menu-btn active" id="handbooksMenuBtn" aria-expanded="true" aria-controls="handbookSwitch">
+          <span>Handbooks</span>
+          <span class="nav-menu-chevron" aria-hidden="true">▾</span>
+        </button>
+        <div class="handbook-switch open" id="handbookSwitch" role="tablist" aria-label="Handbooks">
           <button type="button" class="handbook-btn active" data-view="lspd" id="tabLspd" role="tab" aria-selected="true">
             <span class="handbook-btn-label">LSPD</span>
             <span class="handbook-btn-sub">Patrol</span>
@@ -2676,6 +2729,8 @@
     const tabHighway = document.getElementById("tabHighway");
     const tabSwat = document.getElementById("tabSwat");
     const tabReport = document.getElementById("tabReport");
+    const handbooksMenuBtn = document.getElementById("handbooksMenuBtn");
+    const handbookSwitch = document.getElementById("handbookSwitch");
     const viewLspd = document.getElementById("viewLspd");
     const viewHighway = document.getElementById("viewHighway");
     const viewSwat = document.getElementById("viewSwat");
@@ -2686,20 +2741,33 @@
     const sidebarReport = document.getElementById("sidebarReport");
     const brandMark = document.getElementById("brandMark");
 
+    let lastHandbook = "lspd";
+
+    function setHandbooksOpen(open) {
+      handbookSwitch.classList.toggle("open", open);
+      handbooksMenuBtn.setAttribute("aria-expanded", String(open));
+    }
+
     function showAppView(name) {
       const isLspd = name === "lspd";
       const isHighway = name === "highway";
       const isSwat = name === "swat";
       const isReport = name === "report";
+      const isHandbook = isLspd || isHighway || isSwat;
+
+      if (isHandbook) lastHandbook = name;
 
       tabLspd.classList.toggle("active", isLspd);
       tabHighway.classList.toggle("active", isHighway);
       tabSwat.classList.toggle("active", isSwat);
       tabReport.classList.toggle("active", isReport);
+      handbooksMenuBtn.classList.toggle("active", isHandbook);
 
       tabLspd.setAttribute("aria-selected", String(isLspd));
       tabHighway.setAttribute("aria-selected", String(isHighway));
       tabSwat.setAttribute("aria-selected", String(isSwat));
+
+      setHandbooksOpen(isHandbook);
 
       viewLspd.classList.toggle("active", isLspd);
       viewHighway.classList.toggle("active", isHighway);
@@ -2729,6 +2797,24 @@
         document.getElementById("sideSettingsLink").classList.remove("active");
       }
     }
+
+    handbooksMenuBtn.addEventListener("click", () => {
+      const expanded = handbooksMenuBtn.getAttribute("aria-expanded") === "true";
+      if (expanded && tabReport.classList.contains("active")) {
+        // Already open while on report — jump back to last handbook
+        showAppView(lastHandbook);
+        return;
+      }
+      if (!expanded) {
+        setHandbooksOpen(true);
+        if (tabReport.classList.contains("active")) {
+          showAppView(lastHandbook);
+        }
+        return;
+      }
+      // Toggle closed only when already on a handbook
+      setHandbooksOpen(false);
+    });
 
     tabLspd.addEventListener("click", () => showAppView("lspd"));
     tabHighway.addEventListener("click", () => showAppView("highway"));
@@ -3708,12 +3794,11 @@
       }
 
       const { officerDepartment, officerRank, officerName } = loadSettings();
-      const signLines = formatSignoffLines(officerName, officerRank, officerDepartment);
       const signoff = ["Signed,"];
       const name = officerName.trim();
-      const meta = formatSignoffMeta(officerRank, officerDepartment);
+      const signMeta = formatSignoffMeta(officerRank, officerDepartment);
       if (name) signoff.push(escapeHtml(name));
-      if (meta) signoff.push(`<strong>${escapeHtml(meta)}</strong>`);
+      if (signMeta) signoff.push(`<strong>${escapeHtml(signMeta)}</strong>`);
       parts.push(`<p>${signoff.join("<br>")}</p>`);
 
       return `
