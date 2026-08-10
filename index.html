@@ -194,7 +194,8 @@
     }
 
     #viewLspd,
-    #viewHighway {
+    #viewHighway,
+    #viewSwat {
       width: 100%;
       max-width: none;
     }
@@ -213,6 +214,36 @@
         radial-gradient(ellipse 70% 40% at 100% 0%, rgba(50, 40, 20, 0.45), transparent 50%),
         linear-gradient(rgba(42, 53, 72, 0.18) 1px, transparent 1px),
         linear-gradient(90deg, rgba(42, 53, 72, 0.18) 1px, transparent 1px);
+    }
+
+    body.theme-swat {
+      --accent: #c75b4a;
+      --accent-bright: #e07a68;
+      --accent-soft: rgba(199, 91, 74, 0.16);
+      --focus: rgba(199, 91, 74, 0.35);
+      --accent-hover: #d46856;
+    }
+
+    body.theme-swat {
+      background-image:
+        radial-gradient(ellipse 90% 55% at 10% -10%, rgba(199, 91, 74, 0.12), transparent 55%),
+        radial-gradient(ellipse 70% 40% at 100% 0%, rgba(40, 20, 20, 0.45), transparent 50%),
+        linear-gradient(rgba(42, 53, 72, 0.18) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(42, 53, 72, 0.18) 1px, transparent 1px);
+    }
+
+    body.theme-swat .app-tab.active {
+      color: #ffd5ce;
+    }
+
+    body.theme-swat .hero {
+      background:
+        linear-gradient(135deg, rgba(199, 91, 74, 0.18), transparent 45%),
+        linear-gradient(160deg, #1a2435, #121926);
+    }
+
+    body.theme-swat .hero::after {
+      background: radial-gradient(circle, rgba(199, 91, 74, 0.12), transparent 60%);
     }
 
     .handbook-grid {
@@ -416,7 +447,7 @@
     /* App tabs */
     .app-tabs {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
       gap: 5px;
       margin-bottom: 16px;
     }
@@ -426,13 +457,13 @@
       cursor: pointer;
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      padding: 8px 6px;
+      padding: 8px 4px;
       background: transparent;
       color: var(--muted);
       font-family: var(--display);
       font-weight: 700;
-      font-size: 0.82rem;
-      letter-spacing: 0.06em;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       transition: background var(--ease), color var(--ease), border-color var(--ease);
     }
@@ -468,7 +499,8 @@
     }
 
     #viewLspd.active,
-    #viewHighway.active {
+    #viewHighway.active,
+    #viewSwat.active {
       animation: panelIn 220ms ease;
     }
 
@@ -1428,12 +1460,13 @@
       <div class="brand">
         <div class="brand-mark" id="brandMark">Los Santos Police</div>
         <h1>Patrol Toolkit</h1>
-        <p id="brandSub">LSPD · Highway · Incident Report</p>
+        <p id="brandSub">LSPD · Highway · SWAT · Incident Report</p>
       </div>
 
       <div class="app-tabs">
         <button type="button" class="app-tab active" data-view="lspd" id="tabLspd">LSPD</button>
         <button type="button" class="app-tab" data-view="highway" id="tabHighway">Highway</button>
+        <button type="button" class="app-tab" data-view="swat" id="tabSwat">SWAT</button>
         <button type="button" class="app-tab" data-view="report" id="tabReport">Report</button>
       </div>
 
@@ -1486,6 +1519,35 @@
           <li><a href="#sahp-processing-1">Processing Suspects — Part 1</a></li>
           <li><a href="#sahp-processing-2">Processing Suspects — Part 2</a></li>
           <li><a href="#sahp-impound">Impound Information</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-panel" id="sidebarSwat">
+        <div class="search-wrap">
+          <input type="search" id="searchSwat" placeholder="Search SWAT handbook…" autocomplete="off" />
+          <div class="search-meta" id="searchMetaSwat"></div>
+        </div>
+
+        <p class="nav-title">Contents</p>
+        <ul class="nav-list" id="navListSwat">
+          <li><a href="#swat-intro">Introduction</a></li>
+          <li><a href="#swat-role">Your Role as SWAT</a></li>
+          <li><a href="#swat-notes">Notes from Command</a></li>
+          <li><a href="#swat-lockboxes">Lockboxes</a></li>
+          <li><a href="#swat-uniform">Uniform Guidelines</a></li>
+          <li><a href="#swat-command">Chain of Command</a></li>
+          <li><a href="#swat-loadout">Loadout</a></li>
+          <li><a href="#swat-response">Response Guidelines</a></li>
+          <li><a href="#swat-high-risk">High-Risk Threats</a></li>
+          <li><a href="#swat-hostage">Hostage Situations</a></li>
+          <li><a href="#swat-vehicles">Vehicle SOP</a></li>
+          <li><a href="#swat-personal-vehicles">Personal Vehicles</a></li>
+          <li><a href="#swat-weaponry">Weaponry &amp; Reminders</a></li>
+          <li><a href="#swat-conduct">Conduct &amp; Discipline</a></li>
+          <li><a href="#swat-activation">Activation vs Patrolling</a></li>
+          <li><a href="#swat-triage">Triage</a></li>
+          <li><a href="#swat-triage-locations">Triage Locations</a></li>
+          <li><a href="#swat-garage">SWAT Garage</a></li>
         </ul>
       </div>
 
@@ -2105,6 +2167,272 @@
 
       </div>
 
+      <div class="app-view" id="viewSwat">
+
+      <div class="hero" id="swat-intro" data-search="introduction swat handbook hydrate elite high-risk welcome">
+        <h2>S.W.A.T Handbook</h2>
+        <p class="meta">Hydrate Roleplay · Welcome to SWAT</p>
+        <p>Congratulations on joining SWAT. As members of this elite unit, your primary mission is to address high-risk and dangerous incidents — actively patrolling the city and responding to critical events such as shots fired, hostage situations, and other scenarios that exceed general patrol capabilities.</p>
+      </div>
+
+      <div class="handbook-grid">
+
+      <section id="swat-role" data-search="your role aggressors rooftops mobile operators team leader scene command vehicle occupancy weapon presentation use of force riot shield">
+        <h3>Your Role as SWAT</h3>
+        <p>SWAT will be the aggressors during any scene and are well aware of their role. When attaching to a scene you should be on surrounding rooftops, staying mobile, and if possible an operator with the suspect(s) at all times.</p>
+        <ul>
+          <li><strong>Rooftop operators</strong> constantly relay information to the Team Leader / Scene Command so everyone is aware of surroundings.</li>
+          <li><strong>Mobile operators</strong> scout vantage points and look for possible flanks on enemy combatants.</li>
+        </ul>
+        <ul>
+          <li><strong>Vehicle occupancy</strong> — Maximum of three officers per patrol vehicle unless explicit approval for higher capacity is granted, or the vehicle is designed for more.</li>
+          <li><strong>Weapon presentation</strong> — Only present your two-handed weapon when absolutely necessary. Avoid displaying it casually.</li>
+          <li><strong>Use of force (class matching)</strong> — Match the level of force appropriately. Do not deploy a rifle against armed offenders with only a semi-automatic pistol.</li>
+          <li><strong>Professional conduct</strong> — Always use common sense and maintain professional behaviour.</li>
+          <li><strong>Accountability</strong> — Be prepared to justify all decisions if questioned by Command, Internal Affairs (IA &amp; BIA), or the Department of Justice (DOJ).</li>
+          <li><strong>Riot shield</strong> — Carry only during a breach or an operation, not for everyday carry.</li>
+        </ul>
+      </section>
+
+      <section id="swat-notes" data-search="notes from command authority feared public display tough firm team leaders">
+        <h3>Notes from Command</h3>
+        <div class="callout danger">
+          <strong>Do not payfarm</strong>
+          SWAT members are hand-picked to lead, command, and enforce. You are the authority on scene and are expected to act fast, hard, and without apology.
+        </div>
+        <p>Stand your ground and shut down anyone who steps out of line. Be tough, be firm, and make sure the public knows who’s in charge. No exceptions.</p>
+        <p>When SWAT shows up, take control with a tough, no-nonsense attitude. Team Leaders give orders, not requests, and expect immediate compliance. Members are approachable but maintain authority and expect quick action from the public. Handle non-compliance swiftly.</p>
+      </section>
+
+      <section id="swat-lockboxes" data-search="lockboxes weapons tactical gear deployment ratio all hands on deck">
+        <h3>SWAT Lockboxes</h3>
+        <p>SWAT members can store their weapons and tactical gear in the provided lockboxes. When accessing these items, officers must adhere to the standard deployment ratio.</p>
+        <p>This ensures balanced gameplay and prevents unfair advantages, unless the department is facing an <strong>“all hands on deck”</strong> situation.</p>
+      </section>
+
+      <section id="swat-uniform" data-search="uniform helmet hat mask shirt vest pants boots deputy commander approval">
+        <h3>SWAT Uniform Guidelines</h3>
+        <ul>
+          <li>Helmet / Hat — optional</li>
+          <li>Mask — optional</li>
+          <li>Shirt + Vest — required</li>
+          <li>Pants — required</li>
+          <li>Boots — required</li>
+        </ul>
+        <div class="callout">
+          <strong>No variations</strong>
+          No variations to the SWAT uniform are permitted without prior approval from the Deputy Commander and/or Commander.
+        </div>
+      </section>
+
+      <section id="swat-command" data-search="chain of command commander deputy team leader captain lieutenant sergeant senior operator recruit kay reginald kyle franklin eugene cow alex creed">
+        <h3>SWAT Chain of Command</h3>
+        <table>
+          <thead>
+            <tr><th>Rank</th><th>Current</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Commander</td><td>Kay Reginald</td></tr>
+            <tr><td>Deputy Commander</td><td>Kyle Franklin</td></tr>
+            <tr><td>Team Leader</td><td>Eugene Cow · Alex Creed</td></tr>
+            <tr><td>Captain</td><td>—</td></tr>
+            <tr><td>Lieutenant</td><td>—</td></tr>
+            <tr><td>Sergeant</td><td>—</td></tr>
+            <tr><td>Senior Operator</td><td>—</td></tr>
+            <tr><td>Operator</td><td>—</td></tr>
+            <tr><td>Recruit (Trial)</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="swat-loadout" data-search="loadout pistol shotgun shield nightstick rifle beanbag smg weapon accessories">
+        <h3>SWAT Loadout</h3>
+        <div class="grid-2">
+          <div class="code-card"><strong>Pistol</strong>Sidearm</div>
+          <div class="code-card"><strong>Shotgun</strong>Primary option</div>
+          <div class="code-card"><strong>Rifle</strong>Primary option</div>
+          <div class="code-card"><strong>SMG</strong>Primary option</div>
+          <div class="code-card"><strong>Beanbag</strong>Less-lethal</div>
+          <div class="code-card"><strong>Shield</strong>Breach / operation</div>
+          <div class="code-card"><strong>Nightstick</strong>Impact</div>
+        </div>
+        <p>You may accessorise your weapons as you wish.</p>
+      </section>
+
+      <section id="swat-response" data-search="response guidelines units division store robbery dispatch panic shots fired bank truck car boosting house robbery class b">
+        <h3>Response Guidelines</h3>
+        <p>SWAT is allowed a maximum of <strong>4 units per patrolling division</strong>, unless SWAT Command approval is given.</p>
+        <table>
+          <thead>
+            <tr><th>Call / Situation</th><th>SWAT Allowed?</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Store robbery (dispatch)</td><td>No *</td></tr>
+            <tr><td>Suspicious activity (non-dispatch)</td><td>No *</td></tr>
+            <tr><td>Car boosting</td><td>No *</td></tr>
+            <tr><td>House robbery</td><td>No *</td></tr>
+            <tr><td>Panic buttons / officer downs</td><td>Yes *</td></tr>
+            <tr><td>Shots fired</td><td>Yes *</td></tr>
+            <tr><td>Bank truck alarms</td><td>Yes *</td></tr>
+            <tr><td>Bank alarms</td><td>Yes *</td></tr>
+          </tbody>
+        </table>
+        <p class="hint">* Additional SWAT should activate/respond only if Class B (SMG, Shotgun, AR) weaponry is confirmed.</p>
+      </section>
+
+      <section id="swat-high-risk" data-search="high-risk threats interior holds raids warrants organised crime bank heists drug lab warehouse officer safety extraction hostage">
+        <h3>High-Risk Threats</h3>
+        <p><strong>Armed suspects inside buildings or compounds</strong> — Interior holds; execution of raids/search warrants on known organised groups.</p>
+        <p><strong>Organised &amp; coordinated crime</strong> — Criminal groups engaging in bank robberies, major heists, or mass shootouts; drug lab raids; warehouse operations.</p>
+        <p><strong>Officer safety &amp; public risk</strong> — Responding officers outnumbered, outgunned, or trapped; threats or coordinated attacks on government/police property; extraction of police from active hostile/ambush zones or hostage recoveries.</p>
+      </section>
+
+      <section id="swat-hostage" data-search="hostage situations police station ems officer lethal non-lethal negotiations sops mdt">
+        <h3>Hostage Situations</h3>
+        <p>A hostage situation involves individual(s) being held captive against their will. There are three general types:</p>
+        <ul>
+          <li><strong>Police station vicinity</strong> — Where an officer is held at or around a station: lethal force is authorised and recommended (not instantly — use discretion and follow scene command).</li>
+          <li><strong>EMS hostage</strong> — Lethal force is authorised and recommended (not instantly — use discretion and follow scene command).</li>
+          <li><strong>Police officer hostage</strong> — Non-lethal force is preferred. Use common sense, relay critical information to scene command, support negotiations, initiate pursuits, or be ready with lethal/non-lethal options to regain control.</li>
+        </ul>
+        <p>Full SOPs are found in the SOPs section of the MDT.</p>
+      </section>
+
+      <section id="swat-vehicles" data-search="vehicle sop seats livery white decal stock tyres rims emergency lights command decal">
+        <h3>Vehicle SOP</h3>
+        <ul>
+          <li>All SWAT vehicles must have a minimum of <strong>4 seats</strong>.</li>
+          <li>All SWAT vehicles must use the permitted SWAT livery.</li>
+          <li>The white SWAT decal is also required.</li>
+          <li>Stock tyres and stock rims only.</li>
+          <li>Vehicle must have approved emergency lights fitted at all times.</li>
+        </ul>
+        <p class="hint">* SWAT Command may use the COMMAND decal.</p>
+        <p>Full SOPs are found in the SOPs section of the MDT.</p>
+      </section>
+
+      <section id="swat-personal-vehicles" data-search="personal vehicle modifications tint performance nightkids light bars neon underglow custom wheels vanity">
+        <h3>Personal Vehicle Guidelines</h3>
+        <p><strong>Modifications allowed</strong></p>
+        <ul>
+          <li>Window tint (legal max allowed for SWAT)</li>
+          <li>Performance / engine upgrades (you may max your car at NightKids)</li>
+          <li>Light bars</li>
+        </ul>
+        <p><strong>Modifications not allowed</strong></p>
+        <ul>
+          <li>Neon kits</li>
+          <li>Underglow</li>
+          <li>Custom wheels</li>
+          <li>Non-tactical vanity cosmetics</li>
+        </ul>
+      </section>
+
+      <section id="swat-weaponry" data-search="weaponry key reminders activated all hands on deck code 4 uniform division">
+        <h3>SWAT Weaponry — Key Reminders</h3>
+        <div class="callout">
+          <strong>Activation only</strong>
+          Only use your SWAT weaponry when you’re officially activated as a SWAT unit.
+        </div>
+        <p>If an “all hands on deck” situation arises while you’re on general patrol, you must change into your SWAT uniform and use your judgment for that single scene. Once the situation is Code 4, return to your previous division.</p>
+      </section>
+
+      <section id="swat-conduct" data-search="operational procedures disciplinary actions professionalism privilege handbook orders">
+        <h3>Operational Procedures &amp; Discipline</h3>
+        <p>Being a police officer on Hydrate is a privilege, and serving in the elite SWAT division is an even greater one. You will be held to an exceptionally high standard of professionalism.</p>
+        <div class="callout danger">
+          <strong>Disciplinary actions</strong>
+          Violations of any policies/rules in this handbook or a failure to follow orders will result in disciplinary action.
+        </div>
+      </section>
+
+      <section id="swat-activation" data-search="activation patrolling job role swat vehicles uniform weapons">
+        <h3>SWAT Activation vs Patrolling</h3>
+        <p><strong>SWAT Patrol</strong></p>
+        <ul>
+          <li>You must be on the SWAT job role.</li>
+          <li>Primary responsibility: remain mobile, respond quickly, and be one of the first operators on scene for any situation requiring SWAT.</li>
+          <li>While on patrol, you are required to be in approved SWAT vehicles at all times.</li>
+        </ul>
+        <p><strong>SWAT Activation</strong></p>
+        <ul>
+          <li>You are <strong>not</strong> required to be on the SWAT job role.</li>
+          <li>If a situation escalates and SWAT is called, you may pull your SWAT-issued weapons immediately.</li>
+          <li>At the first safe and available opportunity, switch into full SWAT uniform.</li>
+          <li>You may use your current vehicle — no need to change to your SWAT car.</li>
+        </ul>
+      </section>
+
+      <section id="swat-triage" data-search="triage location defensive medical shootout reinforcements high ground">
+        <h3>Triage</h3>
+        <p>A triage location is a designated, defensive location where people can safely receive more advanced medical attention after a high-profile shootout. They prevent a continuous cycle of violence where reinforcements arrive and open fire trying to rescue fellow criminals.</p>
+        <p><strong>Why location is everything</strong></p>
+        <ul>
+          <li><strong>Minimising threat</strong> — Choose a spot with minimal rooftops, or rooftops that can be held by police, so the opposing side cannot easily gain high ground.</li>
+          <li><strong>Controlling the environment</strong> — A good location funnels the enemy into predictable lines of fire and allows superior cover for police and EMS.</li>
+        </ul>
+      </section>
+
+      <section id="swat-triage-locations" data-search="triage locations mega mall bahama mamas ls customs sandy airport up n atom postcode officers barriers">
+        <h3>Triage Locations</h3>
+        <table>
+          <thead>
+            <tr><th>Location</th><th>PC</th><th>Min / Rec. Officers</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Mega Mall</td>
+              <td>121</td>
+              <td>8 / 12+</td>
+              <td>Open car park; 3 entry/exit points; multiple rooftops; barriers for vehicle entry; ~30s convoy to MRPD</td>
+            </tr>
+            <tr>
+              <td>Bahama Mamas</td>
+              <td>627</td>
+              <td>8 / 12+</td>
+              <td>Rooftops only via internal ladders; no taller surrounding rooftops; 3 entry/exit points; barriers OK</td>
+            </tr>
+            <tr>
+              <td>LS Customs</td>
+              <td>529</td>
+              <td>8 / 12+</td>
+              <td>Rooftops above N/S exits; 2 entry/exit points; can fall back into interior; barriers OK</td>
+            </tr>
+            <tr>
+              <td>Sandy Airport</td>
+              <td>1020</td>
+              <td>7 / 10+</td>
+              <td>High fences (cannot jump); 2 entry/exit points; hangar interior fallback with multiple doors; barriers OK</td>
+            </tr>
+            <tr>
+              <td>Up n Atom</td>
+              <td>625</td>
+              <td>6 / 8+</td>
+              <td>Multiple rooftops to hold; 1 entry/exit point; barriers OK</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="swat-garage" data-search="swat garage brute reserved vehicles">
+        <h3>SWAT Garage</h3>
+        <table>
+          <thead>
+            <tr><th>Vehicle</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Brute *</td><td>Reserved for designated circumstances only</td></tr>
+          </tbody>
+        </table>
+        <p class="hint">Vehicles marked with an asterisk (*) are reserved for designated circumstances only.</p>
+      </section>
+
+      </div>
+
+      <div class="no-results" id="noResultsSwat">No sections match your search.</div>
+
+      </div>
+
       <div class="app-view" id="viewReport">
 
     <!-- REPORT PAGE -->
@@ -2272,36 +2600,46 @@
     // ---- App view switching ----
     const tabLspd = document.getElementById("tabLspd");
     const tabHighway = document.getElementById("tabHighway");
+    const tabSwat = document.getElementById("tabSwat");
     const tabReport = document.getElementById("tabReport");
     const viewLspd = document.getElementById("viewLspd");
     const viewHighway = document.getElementById("viewHighway");
+    const viewSwat = document.getElementById("viewSwat");
     const viewReport = document.getElementById("viewReport");
     const sidebarLspd = document.getElementById("sidebarLspd");
     const sidebarHighway = document.getElementById("sidebarHighway");
+    const sidebarSwat = document.getElementById("sidebarSwat");
     const sidebarReport = document.getElementById("sidebarReport");
     const brandMark = document.getElementById("brandMark");
 
     function showAppView(name) {
       const isLspd = name === "lspd";
       const isHighway = name === "highway";
+      const isSwat = name === "swat";
       const isReport = name === "report";
 
       tabLspd.classList.toggle("active", isLspd);
       tabHighway.classList.toggle("active", isHighway);
+      tabSwat.classList.toggle("active", isSwat);
       tabReport.classList.toggle("active", isReport);
 
       viewLspd.classList.toggle("active", isLspd);
       viewHighway.classList.toggle("active", isHighway);
+      viewSwat.classList.toggle("active", isSwat);
       viewReport.classList.toggle("active", isReport);
 
       sidebarLspd.classList.toggle("active", isLspd);
       sidebarHighway.classList.toggle("active", isHighway);
+      sidebarSwat.classList.toggle("active", isSwat);
       sidebarReport.classList.toggle("active", isReport);
 
       document.body.classList.toggle("theme-highway", isHighway);
+      document.body.classList.toggle("theme-swat", isSwat);
 
       if (isHighway) {
         brandMark.textContent = "San Andreas Highway Patrol";
+      } else if (isSwat) {
+        brandMark.textContent = "Special Weapons and Tactics";
       } else if (isLspd) {
         brandMark.textContent = "Los Santos Police";
       } else {
@@ -2316,6 +2654,7 @@
 
     tabLspd.addEventListener("click", () => showAppView("lspd"));
     tabHighway.addEventListener("click", () => showAppView("highway"));
+    tabSwat.addEventListener("click", () => showAppView("swat"));
     tabReport.addEventListener("click", () => showAppView("report"));
 
     document.getElementById("navListLspd").addEventListener("click", (e) => {
@@ -2323,6 +2662,9 @@
     });
     document.getElementById("navListHighway").addEventListener("click", (e) => {
       if (e.target.closest("a")) showAppView("highway");
+    });
+    document.getElementById("navListSwat").addEventListener("click", (e) => {
+      if (e.target.closest("a")) showAppView("swat");
     });
 
     // ---- Handbook search (per handbook) ----
@@ -2438,6 +2780,14 @@
       metaId: "searchMetaHighway",
       navId: "navListHighway",
       noResultsId: "noResultsHighway",
+    });
+
+    setupHandbookSearch({
+      viewId: "viewSwat",
+      searchId: "searchSwat",
+      metaId: "searchMetaSwat",
+      navId: "navListSwat",
+      noResultsId: "noResultsSwat",
     });
   
 
@@ -3282,12 +3632,10 @@
       const { officerDepartment, officerRank, officerName } = loadSettings();
       const signLines = formatSignoffLines(officerName, officerRank, officerDepartment);
       const signoff = ["Signed,"];
-      signLines.forEach((line, index) => {
-        const escaped = escapeHtml(line);
-        signoff.push(index === signLines.length - 1 && officerDepartment.trim() === line
-          ? `<strong>${escaped}</strong>`
-          : escaped);
-      });
+      const name = officerName.trim();
+      const meta = formatSignoffMeta(officerRank, officerDepartment);
+      if (name) signoff.push(escapeHtml(name));
+      if (meta) signoff.push(`<strong>${escapeHtml(meta)}</strong>`);
       parts.push(`<p>${signoff.join("<br>")}</p>`);
 
       return `
