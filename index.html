@@ -1215,8 +1215,15 @@
       margin: 0;
     }
 
-    .advanced-editor-shell .ql-editor p + p {
-      margin-top: 0.9em;
+    /* Blank line (empty paragraph) = spacer; single Enter stays tight */
+    .advanced-editor-shell .ql-editor p:has(> br:only-child) {
+      margin-top: 0.85em;
+      margin-bottom: 0.15em;
+      min-height: 0.85em;
+    }
+
+    .advanced-editor-shell .ql-editor p:first-child:has(> br:only-child) {
+      margin-top: 0;
     }
 
     .advanced-editor-shell .ql-editor h2 {
@@ -1338,8 +1345,14 @@
       margin: 0;
     }
 
-    .editor-shell .ql-editor p + p {
-      margin-top: 0.9em;
+    .editor-shell .ql-editor p:has(> br:only-child) {
+      margin-top: 0.85em;
+      margin-bottom: 0.15em;
+      min-height: 0.85em;
+    }
+
+    .editor-shell .ql-editor p:first-child:has(> br:only-child) {
+      margin-top: 0;
     }
 
     .editor-shell .ql-editor.ql-blank::before {
@@ -2177,7 +2190,7 @@
 
       <div class="advanced-report" id="advancedReport">
         <div class="advanced-report-meta">
-          <p class="hint">One continuous report document — format headings, lists, and spacing freely.</p>
+          <p class="hint">Enter = next line (tight). Enter again on a blank line = paragraph space.</p>
           <button type="button" class="btn-ghost" id="loadFromSimpleBtn">Load from Simple</button>
         </div>
         <div class="editor-shell advanced-editor-shell">
@@ -2436,93 +2449,11 @@
     const pageSettings = document.getElementById("pageSettings");
 
     const BlockEmbed = Quill.import("blots/block/embed");
-    const Embed = Quill.import("blots/embed");
-    const Delta = Quill.import("delta");
 
     class DividerBlot extends BlockEmbed {}
     DividerBlot.blotName = "divider";
     DividerBlot.tagName = "hr";
     Quill.register(DividerBlot);
-
-    // Soft line break (<br>) — Enter inserts this; a second Enter makes a paragraph.
-    class SoftBreakBlot extends Embed {
-      static create() {
-        return super.create();
-      }
-      static value() {
-        return true;
-      }
-    }
-    SoftBreakBlot.blotName = "softbreak";
-    SoftBreakBlot.tagName = "BR";
-    SoftBreakBlot.className = "ql-softbreak";
-    Quill.register(SoftBreakBlot);
-
-    function isSoftBreakBlot(blot) {
-      const name = blot && blot.statics && blot.statics.blotName;
-      return name === "softbreak" || name === "break";
-    }
-
-    function softEnterKeyboard() {
-      return {
-        bindings: {
-          enter: {
-            key: "Enter",
-            shiftKey: false,
-            handler(range, context) {
-              const editor = this.quill;
-
-              // Keep normal list behavior (new list item).
-              if (context.format && context.format.list) return true;
-
-              if (range.length > 0) {
-                editor.deleteText(range.index, range.length, Quill.sources.USER);
-              }
-
-              let index = editor.getSelection(true)?.index ?? range.index;
-
-              // Empty block → paragraph spacer.
-              if (context.empty) return true;
-
-              // Caret right after a soft break → turn into paragraph spacer.
-              if (index > 0) {
-                const [prevLeaf] = editor.getLeaf(index - 1);
-                if (isSoftBreakBlot(prevLeaf)) {
-                  editor.deleteText(index - 1, 1, Quill.sources.USER);
-                  index -= 1;
-                  editor.insertText(index, "\n", Quill.sources.USER);
-                  editor.setSelection(index + 1, Quill.sources.SILENT);
-                  return false;
-                }
-              }
-
-              // Single Enter → soft line break (like Shift+Enter).
-              editor.insertEmbed(index, "softbreak", true, Quill.sources.USER);
-              editor.setSelection(index + 1, Quill.sources.SILENT);
-              return false;
-            },
-          },
-          "shift enter": {
-            key: "Enter",
-            shiftKey: true,
-            handler(range) {
-              const editor = this.quill;
-              if (range.length > 0) {
-                editor.deleteText(range.index, range.length, Quill.sources.USER);
-              }
-              const index = editor.getSelection(true)?.index ?? range.index;
-              editor.insertEmbed(index, "softbreak", true, Quill.sources.USER);
-              editor.setSelection(index + 1, Quill.sources.SILENT);
-              return false;
-            },
-          },
-        },
-      };
-    }
-
-    function wireSoftBreakClipboard(editor) {
-      editor.clipboard.addMatcher("BR", () => new Delta().insert({ softbreak: true }));
-    }
 
     function deltaToPlain(delta) {
       let text = "";
@@ -2535,6 +2466,7 @@
           text += "\n\n";
         }
       }
+      // Quill stores blocks as trailing \n — collapse only trailing junk
       return text.replace(/\n+$/, "").trim();
     }
 
@@ -2557,10 +2489,8 @@
             },
           },
         },
-        keyboard: softEnterKeyboard(),
       },
     });
-    wireSoftBreakClipboard(quill);
 
     function dividerHandler() {
       const range = this.quill.getSelection(true);
@@ -2585,10 +2515,8 @@
             divider: dividerHandler,
           },
         },
-        keyboard: softEnterKeyboard(),
       },
     });
-    wireSoftBreakClipboard(advancedQuill);
 
     // Evidence items: { id: number, text: string }[]
     let evidence = [];
@@ -2702,7 +2630,45 @@
     function getAdvancedHtml() {
       const html = advancedQuill.root.innerHTML.trim();
       if (!html || html === "<p><br></p>") return "";
-      return html;
+      return normalizeEditorHtmlForCopy(html);
+    }
+
+    function isEmptyEditorParagraph(el) {
+      if (!el || el.tagName !== "P") return false;
+      return !el.textContent.replace(/\u00a0/g, " ").trim();
+    }
+
+    function normalizeEditorHtmlForCopy(html) {
+      const wrap = document.createElement("div");
+      wrap.innerHTML = html;
+      const parts = [];
+      let group = [];
+
+      const flushGroup = () => {
+        if (!group.length) return;
+        parts.push(`<p>${group.join("<br>")}</p>`);
+        group = [];
+      };
+
+      [...wrap.childNodes].forEach((node) => {
+        if (node.nodeType !== 1) return;
+        const el = node;
+
+        if (el.tagName === "P") {
+          if (isEmptyEditorParagraph(el)) {
+            flushGroup();
+            return;
+          }
+          group.push(el.innerHTML);
+          return;
+        }
+
+        flushGroup();
+        parts.push(el.outerHTML);
+      });
+
+      flushGroup();
+      return parts.join("");
     }
 
     function loadAdvancedFromSimple({ force = true } = {}) {
