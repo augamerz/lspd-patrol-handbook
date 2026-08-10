@@ -2600,8 +2600,20 @@
       return value === "advanced" ? "advanced" : "simple";
     }
 
+    function formatSignoffMeta(rank, department) {
+      const rnk = (rank || "").trim();
+      const dept = (department || "").trim();
+      if (rnk && dept) return `${rnk} | ${dept}`;
+      return rnk || dept;
+    }
+
     function formatSignoffLines(name, rank, department) {
-      return [name, rank, department].map((v) => (v || "").trim()).filter(Boolean);
+      const lines = [];
+      const n = (name || "").trim();
+      const meta = formatSignoffMeta(rank, department);
+      if (n) lines.push(n);
+      if (meta) lines.push(meta);
+      return lines;
     }
 
     function isCustomDivisionSelected() {
@@ -2753,14 +2765,12 @@
     function applyOfficerName() {
       const settings = loadSettings();
       const { officerName, officerDepartment, officerRank, reportStyle } = settings;
-      const signLines = formatSignoffLines(officerName, officerRank, officerDepartment);
-      signedBlockEl.innerHTML = signLines
-        .map((line, index) => {
-          const escaped = escapeHtml(line);
-          const isDivision = officerDepartment.trim() && line === officerDepartment.trim() && index === signLines.length - 1;
-          return isDivision ? `<strong>${escaped}</strong>` : escaped;
-        })
-        .join("<br>");
+      const name = officerName.trim();
+      const meta = formatSignoffMeta(officerRank, officerDepartment);
+      const parts = [];
+      if (name) parts.push(escapeHtml(name));
+      if (meta) parts.push(`<strong>${escapeHtml(meta)}</strong>`);
+      signedBlockEl.innerHTML = parts.join("<br>");
       officerNameEl.value = officerName;
       applyDepartmentToForm(officerDepartment);
       officerRankEl.value = officerRank;
