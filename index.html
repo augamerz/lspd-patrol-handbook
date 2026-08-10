@@ -1035,10 +1035,14 @@
     .signed strong {
       display: block;
       color: var(--text);
-      margin-top: 8px;
+      margin-top: 2px;
       font-family: var(--display);
       letter-spacing: 0.08em;
       text-transform: uppercase;
+    }
+
+    .signed #signedBlock {
+      display: block;
     }
 
     .page { display: none; }
@@ -2173,8 +2177,7 @@
 
           <div class="signed">
             Signed,<br />
-            <span id="signedName"></span><br />
-            <strong id="signedDeptRank"></strong>
+            <span id="signedBlock"></span>
           </div>
         </div>
 
@@ -2215,6 +2218,10 @@
           <p class="hint">Used on the report sign-off.</p>
         </div>
         <div class="field">
+          <label for="officerRank">Rank</label>
+          <input type="text" id="officerRank" placeholder="e.g. Officer" autocomplete="off" />
+        </div>
+        <div class="field">
           <label for="officerDivision">Division</label>
           <select id="officerDivision">
             <option value="">Select…</option>
@@ -2228,10 +2235,6 @@
         <div class="field" id="customDivisionField" hidden>
           <label for="officerDepartment">Custom division</label>
           <input type="text" id="officerDepartment" placeholder="Type your division" autocomplete="off" />
-        </div>
-        <div class="field">
-          <label for="officerRank">Rank</label>
-          <input type="text" id="officerRank" placeholder="e.g. Officer" autocomplete="off" />
         </div>
         <div class="field" style="margin-bottom: 0;">
           <label>Report style</label>
@@ -2448,8 +2451,7 @@
     const suspectsList = document.getElementById("suspectsList");
     const suspectTabs = document.getElementById("suspectTabs");
     const vehicleEl = document.getElementById("vehicle");
-    const signedNameEl = document.getElementById("signedName");
-    const signedDeptRankEl = document.getElementById("signedDeptRank");
+    const signedBlockEl = document.getElementById("signedBlock");
     const officerNameEl = document.getElementById("officerName");
     const officerDivisionEl = document.getElementById("officerDivision");
     const officerDepartmentEl = document.getElementById("officerDepartment");
@@ -2598,11 +2600,8 @@
       return value === "advanced" ? "advanced" : "simple";
     }
 
-    function formatDeptRank(department, rank) {
-      const dept = (department || "").trim();
-      const rnk = (rank || "").trim();
-      if (dept && rnk) return `${dept} | ${rnk}`;
-      return dept || rnk;
+    function formatSignoffLines(name, rank, department) {
+      return [name, rank, department].map((v) => (v || "").trim()).filter(Boolean);
     }
 
     function isCustomDivisionSelected() {
@@ -2754,8 +2753,14 @@
     function applyOfficerName() {
       const settings = loadSettings();
       const { officerName, officerDepartment, officerRank, reportStyle } = settings;
-      signedNameEl.textContent = officerName;
-      signedDeptRankEl.textContent = formatDeptRank(officerDepartment, officerRank);
+      const signLines = formatSignoffLines(officerName, officerRank, officerDepartment);
+      signedBlockEl.innerHTML = signLines
+        .map((line, index) => {
+          const escaped = escapeHtml(line);
+          const isDivision = officerDepartment.trim() && line === officerDepartment.trim() && index === signLines.length - 1;
+          return isDivision ? `<strong>${escaped}</strong>` : escaped;
+        })
+        .join("<br>");
       officerNameEl.value = officerName;
       applyDepartmentToForm(officerDepartment);
       officerRankEl.value = officerRank;
@@ -3204,12 +3209,10 @@
       if (report) lines.push("REPORT:", report, "");
 
       const { officerDepartment, officerRank, officerName } = loadSettings();
-      const deptRank = formatDeptRank(officerDepartment, officerRank);
-      const name = officerName.trim();
+      const signLines = formatSignoffLines(officerName, officerRank, officerDepartment);
 
       lines.push("Signed,");
-      if (name) lines.push(name);
-      if (deptRank) lines.push(deptRank);
+      lines.push(...signLines);
 
       return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
     }
@@ -3267,11 +3270,14 @@
       }
 
       const { officerDepartment, officerRank, officerName } = loadSettings();
-      const deptRank = formatDeptRank(officerDepartment, officerRank);
-      const name = officerName.trim();
+      const signLines = formatSignoffLines(officerName, officerRank, officerDepartment);
       const signoff = ["Signed,"];
-      if (name) signoff.push(escapeHtml(name));
-      if (deptRank) signoff.push(`<strong>${escapeHtml(deptRank)}</strong>`);
+      signLines.forEach((line, index) => {
+        const escaped = escapeHtml(line);
+        signoff.push(index === signLines.length - 1 && officerDepartment.trim() === line
+          ? `<strong>${escaped}</strong>`
+          : escaped);
+      });
       parts.push(`<p>${signoff.join("<br>")}</p>`);
 
       return `
