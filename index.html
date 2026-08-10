@@ -562,7 +562,6 @@
       min-height: 100px;
     }
 
-    .report-col-main .footer-fields,
     .report-col-main .signed {
       flex-shrink: 0;
     }
@@ -1026,8 +1025,6 @@
     .suspect-block .party-evidence-list:empty::after {
       content: "No evidence added. Type an item and click Add.";
     }
-
-    .footer-fields { margin-top: 8px; }
 
     .signed {
       margin-top: 18px;
@@ -2161,11 +2158,6 @@
 
           <hr class="rule" />
 
-          <div class="field footer-fields">
-            <label for="filed">Filed By</label>
-            <input type="text" id="filed" readonly title="Set in Settings" />
-          </div>
-
           <div class="signed">
             Signed,<br />
             <span id="signedName"></span><br />
@@ -2205,9 +2197,9 @@
 
       <div class="settings-card">
         <div class="field">
-          <label for="officerName">Officer name (Filed)</label>
+          <label for="officerName">Officer name</label>
           <input type="text" id="officerName" placeholder="e.g. Jim Manning" autocomplete="off" />
-          <p class="hint">This fills the FILED line on every report.</p>
+          <p class="hint">Used on the report sign-off.</p>
         </div>
         <div class="field">
           <label for="officerDepartment">Department</label>
@@ -2432,7 +2424,6 @@
     const suspectsList = document.getElementById("suspectsList");
     const suspectTabs = document.getElementById("suspectTabs");
     const vehicleEl = document.getElementById("vehicle");
-    const filedEl = document.getElementById("filed");
     const signedNameEl = document.getElementById("signedName");
     const signedDeptRankEl = document.getElementById("signedDeptRank");
     const officerNameEl = document.getElementById("officerName");
@@ -2739,7 +2730,6 @@
     function applyOfficerName() {
       const settings = loadSettings();
       const { officerName, officerDepartment, officerRank, reportStyle } = settings;
-      filedEl.value = officerName;
       signedNameEl.textContent = officerName;
       signedDeptRankEl.textContent = formatDeptRank(officerDepartment, officerRank);
       officerNameEl.value = officerName;
@@ -3189,13 +3179,12 @@
       const report = getReportPlain();
       if (report) lines.push("REPORT:", report, "");
 
-      const filed = filedEl.value.trim();
-      const { officerDepartment, officerRank } = loadSettings();
+      const { officerDepartment, officerRank, officerName } = loadSettings();
       const deptRank = formatDeptRank(officerDepartment, officerRank);
+      const name = officerName.trim();
 
-      if (filed) lines.push(`FILED BY : ${filed}`, "");
       lines.push("Signed,");
-      if (filed) lines.push(filed);
+      if (name) lines.push(name);
       if (deptRank) lines.push(deptRank);
 
       return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
@@ -3253,13 +3242,12 @@
         );
       }
 
-      const filed = filedEl.value.trim();
-      const { officerDepartment, officerRank } = loadSettings();
+      const { officerDepartment, officerRank, officerName } = loadSettings();
       const deptRank = formatDeptRank(officerDepartment, officerRank);
+      const name = officerName.trim();
       const signoff = ["Signed,"];
-      if (filed) signoff.push(escapeHtml(filed));
+      if (name) signoff.push(escapeHtml(name));
       if (deptRank) signoff.push(`<strong>${escapeHtml(deptRank)}</strong>`);
-      if (filed) parts.push(`<p>FILED : ${escapeHtml(filed)}</p>`);
       parts.push(`<p>${signoff.join("<br>")}</p>`);
 
       return `
