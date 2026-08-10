@@ -2215,8 +2215,19 @@
           <p class="hint">Used on the report sign-off.</p>
         </div>
         <div class="field">
-          <label for="officerDepartment">Department</label>
-          <input type="text" id="officerDepartment" placeholder="e.g. LSPD" autocomplete="off" />
+          <label for="officerDivision">Division</label>
+          <select id="officerDivision">
+            <option value="">Select…</option>
+            <option value="Los Santos Police Department">Los Santos Police Department</option>
+            <option value="Blaine County Sheriffs Office">Blaine County Sheriffs Office</option>
+            <option value="San Andreas Highway Patrol">San Andreas Highway Patrol</option>
+            <option value="Special Weapons and Tactics">Special Weapons and Tactics</option>
+            <option value="__custom__">Custom</option>
+          </select>
+        </div>
+        <div class="field" id="customDivisionField" hidden>
+          <label for="officerDepartment">Custom division</label>
+          <input type="text" id="officerDepartment" placeholder="Type your division" autocomplete="off" />
         </div>
         <div class="field">
           <label for="officerRank">Rank</label>
@@ -2440,7 +2451,9 @@
     const signedNameEl = document.getElementById("signedName");
     const signedDeptRankEl = document.getElementById("signedDeptRank");
     const officerNameEl = document.getElementById("officerName");
+    const officerDivisionEl = document.getElementById("officerDivision");
     const officerDepartmentEl = document.getElementById("officerDepartment");
+    const customDivisionField = document.getElementById("customDivisionField");
     const officerRankEl = document.getElementById("officerRank");
     const evidenceInput = document.getElementById("evidenceInput");
     const evidenceList = document.getElementById("evidenceList");
@@ -2565,6 +2578,13 @@
       quill.setText("");
     }
 
+    const DIVISION_OPTIONS = [
+      "Los Santos Police Department",
+      "Blaine County Sheriffs Office",
+      "San Andreas Highway Patrol",
+      "Special Weapons and Tactics",
+    ];
+
     function emptySettings() {
       return {
         officerName: "",
@@ -2583,6 +2603,44 @@
       const rnk = (rank || "").trim();
       if (dept && rnk) return `${dept} | ${rnk}`;
       return dept || rnk;
+    }
+
+    function isCustomDivisionSelected() {
+      return officerDivisionEl.value === "__custom__";
+    }
+
+    function syncCustomDivisionField() {
+      const showCustom = isCustomDivisionSelected();
+      customDivisionField.hidden = !showCustom;
+      if (showCustom) {
+        officerDepartmentEl.focus();
+      }
+    }
+
+    function getDepartmentFromForm() {
+      if (isCustomDivisionSelected()) {
+        return officerDepartmentEl.value.trim();
+      }
+      return officerDivisionEl.value.trim();
+    }
+
+    function applyDepartmentToForm(department) {
+      const value = (department || "").trim();
+      if (DIVISION_OPTIONS.includes(value)) {
+        officerDivisionEl.value = value;
+        officerDepartmentEl.value = "";
+        customDivisionField.hidden = true;
+        return;
+      }
+      if (value) {
+        officerDivisionEl.value = "__custom__";
+        officerDepartmentEl.value = value;
+        customDivisionField.hidden = false;
+        return;
+      }
+      officerDivisionEl.value = "";
+      officerDepartmentEl.value = "";
+      customDivisionField.hidden = true;
     }
 
     function loadSettings() {
@@ -2699,7 +2757,7 @@
       signedNameEl.textContent = officerName;
       signedDeptRankEl.textContent = formatDeptRank(officerDepartment, officerRank);
       officerNameEl.value = officerName;
-      officerDepartmentEl.value = officerDepartment;
+      applyDepartmentToForm(officerDepartment);
       officerRankEl.value = officerRank;
       setReportStyleInputs(reportStyle);
     }
@@ -3318,7 +3376,7 @@
       const selectedStyle = getSelectedReportStyleInput()?.value || "simple";
       const settings = {
         officerName: officerNameEl.value.trim(),
-        officerDepartment: officerDepartmentEl.value.trim(),
+        officerDepartment: getDepartmentFromForm(),
         officerRank: officerRankEl.value.trim(),
         reportStyle: normalizeReportStyle(selectedStyle),
       };
@@ -3369,6 +3427,7 @@
     advancedQuill.on("text-change", (_delta, _old, source) => {
       if (source === "user") advancedTouched = true;
     });
+    officerDivisionEl.addEventListener("change", syncCustomDivisionField);
     [officerNameEl, officerDepartmentEl, officerRankEl].forEach((el) => {
       el.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
