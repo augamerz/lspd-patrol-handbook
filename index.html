@@ -679,7 +679,8 @@
       flex-shrink: 0;
     }
 
-    #pageReport.active {
+    #pageReport.active,
+    #pageFto.active {
       display: flex;
       flex-direction: column;
       flex: 1;
@@ -1016,6 +1017,10 @@
       font-style: italic;
     }
 
+    #ftoStagesList:empty::after {
+      content: "No stages added yet.";
+    }
+
     .evidence-item {
       display: inline-flex;
       align-items: center;
@@ -1340,6 +1345,93 @@
 
     #pageReport.report-style-advanced .advanced-report {
       display: flex;
+    }
+
+    #pageFto.report-style-advanced .fto-simple {
+      display: none;
+    }
+
+    #pageFto.report-style-advanced .advanced-report {
+      display: flex;
+    }
+
+    .fto-simple {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .fto-simple .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 720px) {
+      .fto-simple .row { grid-template-columns: 1fr; }
+    }
+
+    .stage-add {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 150px auto;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 640px) {
+      .stage-add {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stage-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 100%;
+      background: #1a222f;
+      border: 1px solid #2e3a4d;
+      border-radius: 6px;
+      padding: 7px 10px;
+      color: var(--text);
+      font-size: 0.86rem;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
+    .stage-item .text {
+      min-width: 0;
+      word-break: break-word;
+    }
+
+    .stage-status {
+      flex-shrink: 0;
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--input);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 6px;
+      max-width: 120px;
+    }
+
+    .stage-status[data-status="introduced"] {
+      border-color: var(--accent);
+      color: var(--accent-bright);
+    }
+
+    .stage-status[data-status="in-progress"] {
+      border-color: var(--mark);
+      color: #e0b84a;
+    }
+
+    .stage-status[data-status="signed-off"] {
+      border-color: var(--success);
+      color: #7dcea0;
     }
 
     .advanced-report-meta {
@@ -1709,10 +1801,11 @@
       <div class="sidebar-panel" id="sidebarReport">
         <p class="nav-title">Report tools</p>
         <ul class="nav-list">
-          <li><a href="#" id="sideReportLink" class="active">Write report</a></li>
+          <li><a href="#" id="sideReportLink" class="active">Incident Report</a></li>
+          <li><a href="#" id="sideFtoLink">FTO Report</a></li>
           <li><a href="#" id="sideSettingsLink">Settings</a></li>
         </ul>
-        <p class="hint" style="margin-top:14px;padding:0 10px;">Miranda rights and the full form are in the main panel. Officer name is saved in this browser.</p>
+        <p class="hint" style="margin-top:14px;padding:0 10px;">Officer details in Settings apply to both incident and FTO sign-offs.</p>
       </div>
     </aside>
 
@@ -2699,6 +2792,92 @@
       </div>
     </div>
 
+    <!-- FTO REPORT PAGE -->
+    <div class="page" id="pageFto">
+      <h1>FTO Report</h1>
+      <p class="page-hint">Log FTO session times, notes, and completed training stages.</p>
+
+      <div class="toolbar">
+        <button type="button" class="btn-ghost" id="ftoSettingsBtn">Settings</button>
+        <div class="style-toggle" role="group" aria-label="FTO report style">
+          <button type="button" class="style-btn active" id="ftoStyleSimpleBtn" data-style="simple">Simple</button>
+          <button type="button" class="style-btn" id="ftoStyleAdvancedBtn" data-style="advanced">Advanced</button>
+        </div>
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" id="ftoClearBtn">Clear form</button>
+        <button type="button" class="btn-primary" id="ftoCopyBtn">Copy report</button>
+      </div>
+
+      <div class="fto-simple" id="ftoSimple">
+        <div class="row">
+          <div class="field">
+            <label for="ftoDate">Date</label>
+            <input type="text" id="ftoDate" readonly title="Sets automatically when you copy" />
+          </div>
+          <div class="field">
+            <label for="ftoTime">Time</label>
+            <div class="time-row">
+              <input type="text" id="ftoTime" readonly title="Click Update time to set" />
+              <button type="button" class="btn-ghost" id="ftoUpdateTimeBtn">Update time</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="ftoPatrolStart">Patrol start</label>
+            <div class="time-row">
+              <input type="text" id="ftoPatrolStart" readonly title="Click Set start" />
+              <button type="button" class="btn-ghost" id="ftoSetStartBtn">Set start</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="ftoPatrolEnd">Patrol end</label>
+            <div class="time-row">
+              <input type="text" id="ftoPatrolEnd" readonly title="Click Set end" />
+              <button type="button" class="btn-ghost" id="ftoSetEndBtn">Set end</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="ftoSessionNotes">Session Notes</label>
+          <textarea id="ftoSessionNotes" placeholder="What was covered this session, performance notes, feedback…" style="min-height:140px;"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="ftoStageInput">Completed Stages</label>
+          <div class="stage-add">
+            <input type="text" id="ftoStageInput" placeholder="Stage name, e.g. Traffic stops" autocomplete="off" />
+            <select id="ftoStageStatus">
+              <option value="introduced">Introduced</option>
+              <option value="in-progress">In Progress</option>
+              <option value="signed-off">Signed off</option>
+            </select>
+            <button type="button" class="btn-primary" id="ftoAddStageBtn">Add</button>
+          </div>
+          <ul class="evidence-list" id="ftoStagesList" aria-live="polite"></ul>
+        </div>
+
+        <hr class="rule" />
+
+        <div class="signed">
+          Signed,<br />
+          <span id="ftoSignedBlock"></span>
+        </div>
+      </div>
+
+      <div class="advanced-report" id="ftoAdvancedReport">
+        <div class="advanced-report-meta">
+          <p class="hint">Enter = next line (tight). Enter again on a blank line = paragraph space.</p>
+          <button type="button" class="btn-ghost" id="ftoLoadFromSimpleBtn">Load from Simple</button>
+        </div>
+        <div class="editor-shell advanced-editor-shell">
+          <div id="ftoAdvancedEditor"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- SETTINGS PAGE -->
     <div class="page" id="pageSettings">
       <h1 class="page-title">Settings</h1>
@@ -2740,7 +2919,7 @@
               <input type="radio" name="reportStyle" value="simple" checked />
               <span class="option-copy">
                 <strong>Simple</strong>
-                <span>Separated fields and involved parties panel (current layout).</span>
+                <span>Form layout for Incident Reports (FTO has its own toggle).</span>
               </span>
             </label>
             <label class="report-style-option">
@@ -2784,6 +2963,7 @@
     const brandMark = document.getElementById("brandMark");
 
     let lastHandbook = "lspd";
+    let lastReportTool = "report";
 
     function setHandbooksOpen(open) {
       handbookSwitch.classList.toggle("open", open);
@@ -2835,8 +3015,11 @@
       }
 
       if (isReport) {
-        document.getElementById("sideReportLink").classList.add("active");
+        const tool = lastReportTool === "fto" ? "fto" : "report";
+        document.getElementById("sideReportLink").classList.toggle("active", tool === "report");
+        document.getElementById("sideFtoLink").classList.toggle("active", tool === "fto");
         document.getElementById("sideSettingsLink").classList.remove("active");
+        showPage(tool);
       }
     }
 
@@ -3018,6 +3201,7 @@
     const toast = document.getElementById("toast");
     const pageReport = document.getElementById("pageReport");
     const pageSettings = document.getElementById("pageSettings");
+    const pageFto = document.getElementById("pageFto");
 
     const BlockEmbed = Quill.import("blots/block/embed");
 
@@ -3336,9 +3520,16 @@
     function showPage(name) {
       pageReport.classList.toggle("active", name === "report");
       pageSettings.classList.toggle("active", name === "settings");
+      pageFto.classList.toggle("active", name === "fto");
+      if (name === "report" || name === "fto") lastReportTool = name;
       if (name === "settings") {
         applyOfficerName();
+        applyFtoSignoff();
         officerNameEl.focus();
+      }
+      if (name === "fto") {
+        applyFtoSignoff();
+        applyFtoReportStyle(loadFtoSettings().reportStyle, { syncFromSimple: false });
       }
     }
 
@@ -3974,7 +4165,6 @@
     document.getElementById("updateTimeBtn").addEventListener("click", fillTime);
     document.getElementById("clearBtn").addEventListener("click", clearForm);
     document.getElementById("settingsBtn").addEventListener("click", () => showPage("settings"));
-    document.getElementById("backBtn").addEventListener("click", () => showPage("report"));
     document.getElementById("saveSettingsBtn").addEventListener("click", saveOfficerSettings);
     document.getElementById("styleSimpleBtn").addEventListener("click", () => {
       setReportStyleAndSave("simple");
@@ -4013,22 +4203,402 @@
     document.getElementById("sideReportLink").addEventListener("click", (e) => {
       e.preventDefault();
       showPage("report");
-      document.getElementById("sideReportLink").classList.add("active");
-      document.getElementById("sideSettingsLink").classList.remove("active");
+    });
+    document.getElementById("sideFtoLink").addEventListener("click", (e) => {
+      e.preventDefault();
+      showPage("fto");
     });
     document.getElementById("sideSettingsLink").addEventListener("click", (e) => {
       e.preventDefault();
       showPage("settings");
-      document.getElementById("sideSettingsLink").classList.add("active");
-      document.getElementById("sideReportLink").classList.remove("active");
     });
     // Keep sidebar link in sync with in-page settings buttons
     const _origShowPage = showPage;
     showPage = function(name) {
       _origShowPage(name);
       document.getElementById("sideReportLink").classList.toggle("active", name === "report");
+      document.getElementById("sideFtoLink").classList.toggle("active", name === "fto");
       document.getElementById("sideSettingsLink").classList.toggle("active", name === "settings");
     };
+
+    // ---- FTO report ----
+
+    const FTO_STORAGE_KEY = "ftoReportSettings";
+    const FTO_STAGE_STATUSES = [
+      { value: "introduced", label: "Introduced" },
+      { value: "in-progress", label: "In Progress" },
+      { value: "signed-off", label: "Signed off" },
+    ];
+
+    const ftoDateEl = document.getElementById("ftoDate");
+    const ftoTimeEl = document.getElementById("ftoTime");
+    const ftoPatrolStartEl = document.getElementById("ftoPatrolStart");
+    const ftoPatrolEndEl = document.getElementById("ftoPatrolEnd");
+    const ftoSessionNotesEl = document.getElementById("ftoSessionNotes");
+    const ftoStageInput = document.getElementById("ftoStageInput");
+    const ftoStageStatus = document.getElementById("ftoStageStatus");
+    const ftoStagesList = document.getElementById("ftoStagesList");
+    const ftoSignedBlockEl = document.getElementById("ftoSignedBlock");
+
+    const ftoAdvancedQuill = new Quill("#ftoAdvancedEditor", {
+      theme: "snow",
+      placeholder: "Write and format the full FTO report as one document…",
+      modules: {
+        toolbar: {
+          container: [
+            ["bold", "underline", "strike"],
+            [{ header: [2, 3, false] }],
+            [{ list: "ordered" }, { list: "bullet" }],
+            [{ align: "" }, { align: "center" }, { align: "right" }, { align: "justify" }],
+            ["divider"],
+          ],
+          handlers: {
+            divider: dividerHandler,
+          },
+        },
+      },
+    });
+
+    let ftoStages = [];
+    let ftoNextStageId = 1;
+    let ftoAdvancedTouched = false;
+
+    function emptyFtoSettings() {
+      return { reportStyle: "simple" };
+    }
+
+    function loadFtoSettings() {
+      try {
+        const raw = localStorage.getItem(FTO_STORAGE_KEY);
+        if (!raw) return emptyFtoSettings();
+        const data = JSON.parse(raw);
+        return {
+          reportStyle: normalizeReportStyle(data.reportStyle),
+        };
+      } catch {
+        return emptyFtoSettings();
+      }
+    }
+
+    function saveFtoSettings(settings) {
+      localStorage.setItem(FTO_STORAGE_KEY, JSON.stringify(settings));
+    }
+
+    function stageStatusLabel(value) {
+      return FTO_STAGE_STATUSES.find((s) => s.value === value)?.label || "Introduced";
+    }
+
+    function normalizeStageStatus(value) {
+      return FTO_STAGE_STATUSES.some((s) => s.value === value) ? value : "introduced";
+    }
+
+    function fillFtoDate() {
+      ftoDateEl.value = formatDate(new Date());
+    }
+
+    function fillFtoTime() {
+      ftoTimeEl.value = formatTime(new Date());
+    }
+
+    function applyFtoSignoff() {
+      const { officerName, officerDepartment, officerRank } = loadSettings();
+      const name = officerName.trim();
+      const meta = formatSignoffMeta(officerRank, officerDepartment);
+      const parts = [];
+      if (name) parts.push(escapeHtml(name));
+      if (meta) parts.push(`<strong>${escapeHtml(meta)}</strong>`);
+      ftoSignedBlockEl.innerHTML = parts.join("<br>");
+    }
+
+    function setFtoStyleInputs(style) {
+      const value = normalizeReportStyle(style);
+      document.getElementById("ftoStyleSimpleBtn").classList.toggle("active", value === "simple");
+      document.getElementById("ftoStyleAdvancedBtn").classList.toggle("active", value === "advanced");
+    }
+
+    function isFtoAdvancedEmpty() {
+      return !ftoAdvancedQuill.getText().replace(/\u00a0/g, " ").trim();
+    }
+
+    function getFtoAdvancedPlain() {
+      return deltaToPlain(ftoAdvancedQuill.getContents());
+    }
+
+    function getFtoAdvancedHtml() {
+      const html = ftoAdvancedQuill.root.innerHTML.trim();
+      if (!html || html === "<p><br></p>") return "";
+      return normalizeEditorHtmlForCopy(html);
+    }
+
+    function renderFtoStages() {
+      ftoStagesList.innerHTML = "";
+      for (const stage of ftoStages) {
+        const li = document.createElement("li");
+        li.className = "stage-item";
+        li.dataset.id = String(stage.id);
+
+        const icon = document.createElement("span");
+        icon.className = "chip-icon";
+        icon.innerHTML = BADGE_ICON;
+
+        const text = document.createElement("span");
+        text.className = "text";
+        text.textContent = stage.text;
+
+        const status = document.createElement("select");
+        status.className = "stage-status";
+        status.dataset.status = stage.status;
+        FTO_STAGE_STATUSES.forEach((opt) => {
+          const option = document.createElement("option");
+          option.value = opt.value;
+          option.textContent = opt.label;
+          if (opt.value === stage.status) option.selected = true;
+          status.appendChild(option);
+        });
+        status.addEventListener("change", () => {
+          stage.status = normalizeStageStatus(status.value);
+          status.dataset.status = stage.status;
+        });
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "chip-remove";
+        remove.title = "Remove";
+        remove.setAttribute("aria-label", "Remove");
+        remove.textContent = "×";
+        remove.addEventListener("click", () => {
+          ftoStages = ftoStages.filter((s) => s.id !== stage.id);
+          renderFtoStages();
+        });
+
+        li.append(icon, text, status, remove);
+        ftoStagesList.appendChild(li);
+      }
+    }
+
+    function addFtoStage() {
+      const text = ftoStageInput.value.trim();
+      if (!text) {
+        ftoStageInput.focus();
+        return;
+      }
+      ftoStages.push({
+        id: ftoNextStageId++,
+        text,
+        status: normalizeStageStatus(ftoStageStatus.value),
+      });
+      ftoStageInput.value = "";
+      ftoStageInput.focus();
+      renderFtoStages();
+    }
+
+    function buildFtoPlain() {
+      const lines = ["FTO REPORT", ""];
+      const date = ftoDateEl.value.trim();
+      const time = ftoTimeEl.value.trim();
+      const start = ftoPatrolStartEl.value.trim();
+      const end = ftoPatrolEndEl.value.trim();
+      if (date) lines.push(`DATE: ${date}`);
+      if (time) lines.push(`TIME: ${time}`);
+      if (start) lines.push(`PATROL START: ${start}`);
+      if (end) lines.push(`PATROL END: ${end}`);
+      if (date || time || start || end) lines.push("");
+
+      const notes = ftoSessionNotesEl.value.trim();
+      if (notes) lines.push("SESSION NOTES:", notes, "");
+
+      if (ftoStages.length) {
+        lines.push("COMPLETED STAGES:");
+        ftoStages.forEach((s) => {
+          lines.push(`- ${s.text} [${stageStatusLabel(s.status)}]`);
+        });
+        lines.push("");
+      }
+
+      const { officerName, officerDepartment, officerRank } = loadSettings();
+      const signLines = formatSignoffLines(officerName, officerRank, officerDepartment);
+      lines.push("Signed,");
+      lines.push(...signLines);
+      return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+    }
+
+    function buildFtoHtml() {
+      const parts = [`<p><strong>FTO REPORT</strong></p>`];
+      const meta = [];
+      const date = ftoDateEl.value.trim();
+      const time = ftoTimeEl.value.trim();
+      const start = ftoPatrolStartEl.value.trim();
+      const end = ftoPatrolEndEl.value.trim();
+      if (date) meta.push(`DATE: ${escapeHtml(date)}`);
+      if (time) meta.push(`TIME: ${escapeHtml(time)}`);
+      if (start) meta.push(`PATROL START: ${escapeHtml(start)}`);
+      if (end) meta.push(`PATROL END: ${escapeHtml(end)}`);
+      if (meta.length) parts.push(`<p>${meta.join("<br>")}</p>`);
+
+      const notes = ftoSessionNotesEl.value.trim();
+      if (notes) {
+        parts.push(
+          `<p><strong>SESSION NOTES:</strong><br>${escapeHtml(notes).replace(/\n/g, "<br>")}</p>`
+        );
+      }
+
+      if (ftoStages.length) {
+        const stageLines = ftoStages
+          .map((s) => `- ${escapeHtml(s.text)} [${escapeHtml(stageStatusLabel(s.status))}]`)
+          .join("<br>");
+        parts.push(`<p><strong>COMPLETED STAGES:</strong><br>${stageLines}</p>`);
+      }
+
+      const { officerName, officerDepartment, officerRank } = loadSettings();
+      const signoff = ["Signed,"];
+      const name = officerName.trim();
+      const signMeta = formatSignoffMeta(officerRank, officerDepartment);
+      if (name) signoff.push(escapeHtml(name));
+      if (signMeta) signoff.push(`<strong>${escapeHtml(signMeta)}</strong>`);
+      parts.push(`<p>${signoff.join("<br>")}</p>`);
+
+      return `
+<div style="font-family:Segoe UI,system-ui,sans-serif;line-height:1.45;white-space:normal;">
+  ${parts.join("\n  ")}
+</div>`.trim();
+    }
+
+    function loadFtoAdvancedFromSimple({ force = true } = {}) {
+      if (!force && ftoAdvancedTouched && !isFtoAdvancedEmpty()) return;
+      fillFtoDate();
+      if (!ftoTimeEl.value.trim()) fillFtoTime();
+      applyFtoSignoff();
+      const html = buildFtoHtml();
+      const match = html.match(/<div[^>]*>([\s\S]*)<\/div>\s*$/);
+      const body = (match ? match[1] : html).trim();
+      ftoAdvancedQuill.setContents([]);
+      ftoAdvancedQuill.clipboard.dangerouslyPasteHTML(0, body || "<p><br></p>");
+      ftoAdvancedTouched = false;
+    }
+
+    function applyFtoReportStyle(style, { syncFromSimple = false } = {}) {
+      const value = normalizeReportStyle(style);
+      pageFto.classList.toggle("report-style-advanced", value === "advanced");
+      setFtoStyleInputs(value);
+      if (value === "advanced" && (syncFromSimple || isFtoAdvancedEmpty())) {
+        loadFtoAdvancedFromSimple({ force: syncFromSimple || isFtoAdvancedEmpty() });
+      }
+    }
+
+    function setFtoReportStyleAndSave(style, { syncFromSimple = false } = {}) {
+      const reportStyle = normalizeReportStyle(style);
+      saveFtoSettings({ reportStyle });
+      applyFtoReportStyle(reportStyle, { syncFromSimple });
+    }
+
+    async function copyFtoReport() {
+      fillFtoDate();
+      applyFtoSignoff();
+      const usingAdvanced = pageFto.classList.contains("report-style-advanced");
+      const plain = usingAdvanced ? getFtoAdvancedPlain() : buildFtoPlain();
+      const html = usingAdvanced
+        ? `<div style="font-family:Segoe UI,system-ui,sans-serif;line-height:1.45;white-space:normal;">${getFtoAdvancedHtml()}</div>`
+        : buildFtoHtml();
+
+      if (!plain) {
+        showToast("Nothing to copy yet");
+        return;
+      }
+
+      const canUseClipboardApi = window.isSecureContext && navigator.clipboard;
+      try {
+        if (
+          canUseClipboardApi &&
+          window.ClipboardItem &&
+          typeof navigator.clipboard.write === "function"
+        ) {
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              "text/plain": new Blob([plain], { type: "text/plain" }),
+              "text/html": new Blob([html], { type: "text/html" }),
+            }),
+          ]);
+          showToast("Copied to clipboard");
+          return;
+        }
+        if (canUseClipboardApi && typeof navigator.clipboard.writeText === "function") {
+          await navigator.clipboard.writeText(plain);
+          showToast("Copied to clipboard");
+          return;
+        }
+      } catch {
+        // fall through
+      }
+
+      if (copyPlainFallback(plain)) showToast("Copied to clipboard");
+      else showToast("Copy failed — select and copy manually");
+    }
+
+    function clearFtoForm() {
+      if (!confirm("Clear the FTO form?")) return;
+      ftoDateEl.value = "";
+      ftoTimeEl.value = "";
+      ftoPatrolStartEl.value = "";
+      ftoPatrolEndEl.value = "";
+      ftoSessionNotesEl.value = "";
+      ftoStageInput.value = "";
+      ftoStageStatus.value = "introduced";
+      ftoStages = [];
+      ftoNextStageId = 1;
+      ftoAdvancedQuill.setText("");
+      ftoAdvancedTouched = false;
+      applyFtoSignoff();
+      renderFtoStages();
+      if (pageFto.classList.contains("report-style-advanced")) {
+        loadFtoAdvancedFromSimple({ force: true });
+      }
+    }
+
+    document.getElementById("ftoSettingsBtn").addEventListener("click", () => showPage("settings"));
+    document.getElementById("ftoUpdateTimeBtn").addEventListener("click", fillFtoTime);
+    document.getElementById("ftoSetStartBtn").addEventListener("click", () => {
+      ftoPatrolStartEl.value = formatTime(new Date());
+    });
+    document.getElementById("ftoSetEndBtn").addEventListener("click", () => {
+      ftoPatrolEndEl.value = formatTime(new Date());
+    });
+    document.getElementById("ftoAddStageBtn").addEventListener("click", addFtoStage);
+    ftoStageInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addFtoStage();
+      }
+    });
+    document.getElementById("ftoCopyBtn").addEventListener("click", copyFtoReport);
+    document.getElementById("ftoClearBtn").addEventListener("click", clearFtoForm);
+    document.getElementById("ftoStyleSimpleBtn").addEventListener("click", () => {
+      setFtoReportStyleAndSave("simple");
+    });
+    document.getElementById("ftoStyleAdvancedBtn").addEventListener("click", () => {
+      setFtoReportStyleAndSave("advanced", { syncFromSimple: isFtoAdvancedEmpty() });
+    });
+    document.getElementById("ftoLoadFromSimpleBtn").addEventListener("click", () => {
+      if (
+        ftoAdvancedTouched &&
+        !isFtoAdvancedEmpty() &&
+        !confirm("Replace the advanced FTO report with content from the Simple form?")
+      ) {
+        return;
+      }
+      loadFtoAdvancedFromSimple({ force: true });
+      showToast("Loaded from Simple");
+    });
+    ftoAdvancedQuill.on("text-change", (_delta, _old, source) => {
+      if (source === "user") ftoAdvancedTouched = true;
+    });
+
+    document.getElementById("backBtn").addEventListener("click", () => {
+      showPage(lastReportTool === "fto" ? "fto" : "report");
+    });
+
+    applyFtoSignoff();
+    applyFtoReportStyle(loadFtoSettings().reportStyle, { syncFromSimple: false });
+    renderFtoStages();
   </script>
 </body>
 </html>
